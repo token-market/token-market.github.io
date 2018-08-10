@@ -343,9 +343,10 @@
         bindAddr = bindAddr && bindAddr.length == 35?bindAddr:'';
 
         // 页面加载时请求数据
-        let noNasExtWallet = typeof (webExtensionWallet) === "undefined";
+        let noNasExtWallet = true;
         $().ready(function () {
             if (os.isPc) {
+                noNasExtWallet = typeof (webExtensionWallet) === "undefined";
                 if (noNasExtWallet) {
                     $("#web-wallet-tip").modal("show");
                     if (bindAddr==="")
