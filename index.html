@@ -409,6 +409,19 @@
             })
         });
 
+        function setBindAddr(addr) {
+            bindAddr = addr;
+
+            let infoDiv = $('#info-dlg');
+            var hash = infoDiv.attr("data-hash");
+            if(!!hash&&hash!=='') {
+                var tokenInfo = tokenInfos[hash];
+                if(!!tokenInfo) {
+                    showOrderList(tokenInfo,0);
+                }
+            }
+        }
+
         //计算已经购买的额度
         function getBuyAmount(tokenInfo) {
             let amount = 0;
