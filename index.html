@@ -1,0 +1,931 @@
+<!doctype>
+<html>
+
+<head>
+    <link href="libs/bootstrap-4.0.0-dist/css/bootstrap.css" rel="stylesheet">
+    <link href="libs/bootstrap-slider/css/bootstrap-slider.min.css" rel="stylesheet">
+    <link href="fonts/iconfont.css" rel="stylesheet">
+    <link href="stylesheets/style.css" rel="stylesheet">
+    <link href="stylesheets/ui-block.css" rel="stylesheet">
+    <link href="stylesheets/base.css" rel="stylesheet">
+    <link rel="shortcut icon" href="images/favicon.ico?v=1">
+    <link rel="apple-touch-icon" href="images/touch-icon-iphone.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="images/touch-icon-ipad.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="images/touch-icon-iphone4.png" />
+
+    <link rel="stylesheet" type="text/css" href="libs/addtohomescreen/style/addtohomescreen.css">
+    <title>币集市</title>
+    <meta name=viewport content="width=device-width">
+    <meta charset="utf-8">
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--script async src="https://www.googletagmanager.com/gtag/js?id=UA-121345599-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'UA-121345599-1');
+    </script-->
+    
+    <style>
+     .tooltip-inner > p {
+        text-align:left;
+    }
+    .table th, .table td {
+        padding:0.5em;
+        text-align: center;
+    }
+    .order-list > table {
+        box-shadow:0 0 1.6em 0.2em gray inset;
+        margin-bottom:0;
+    }
+    a[disabled] {
+        color:lightgrey !important;
+    }
+    .page-item.active .page-link {
+        z-index: 1;
+        color: #fff;
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .page-link{
+        color: #28a745;        
+    }
+    .qrcode-background{
+        z-index: 1999 !important;
+    }
+    .qrcode-background canvas{
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .qrcode-background>div:after {
+         color:white;
+         content: "请用手机钱包扫描二维码完成支付：";
+         text-shadow: lightgray 2px 2px 12px;
+    }
+ </style>
+</head>
+<body>
+    <div class=logo-main></div>
+    <div class="title" style="text-align: center;color:#6f3304;"></div>
+    <div id=result1 class="container" >
+        <div id=result class="row" >
+        </div>
+    </div>
+    <div id=loading style="text-align: center; position: absolute;width:100%; margin-top:300px;">
+        <div style="max-width:60%;margin:auto;padding: 1em;background: white; border:1px solid gray;border-radius: 1rem;">
+            <img src="images/loading.gif">
+            <div>加载中...</div>
+        </div>
+    </div>
+    <hr>
+    <div class=footer></div>
+
+    <!-- 项目信息对话框 -->
+    <div class="modal fade" id="info-dlg">
+        <div class="modal-dialog" style="max-width: 640px;">
+            <div class="modal-content">
+
+                <!-- 模态框头部 -->
+                <div style="display: block;" class="modal-header info-header card-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <div style="text-align:center;">
+                        <span style="font-size:1.4rem;text-shadow: 0 0 16px #fff8;"></span>
+                        <span style="font-size: 0.9rem;position: absolute;top: 1.3rem;"></span>
+                    </div>
+                    <div class="text-nowrap header-hash">
+                        <i style="font-size:0.8em"></i>
+                        <br>
+                    </div>
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body" style="padding: 0">
+                    <div class="container">
+                        <div class="info-body card-body form-group">
+                            <div class="form-group row">
+                                <div style="text-align: center;" class="w-100">
+                                    <img style="border-radius:0.25em;width:60%; max-width: 220px;margin: 1rem;">
+                                </div>
+                                <div class="w-100"></div>
+                                <div class=col>
+                                </div>
+                            </div> <hr>
+                            <div class=row>
+                                <div class=col>
+                                    <h6 style="text-align:center;"></h6>
+                                    <div class="progress">
+                                        <div role="progressbar">
+                                            <span style="min-width:6em;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <span style="float:left;" data-toggle="tooltip" title="开始区块高度"></span>
+                                    <span style="float:right;" data-toggle="tooltip" title="结束区块高度"></span>
+                                </div>
+                            </div> <hr>
+                            <div class="row">
+                                <div class="col-md-6 text-nowrap">开始时间：
+                                    <span class="begin-time"></span>
+                                </div>
+                                <div class="col-md-6 text-nowrap">结束时间：
+                                    <span class="end-time"></span>
+                                </div>
+                                <div class="col-md-6 text-nowrap">
+                                </div>
+                                <div class="col-md-6 text-nowrap">
+                                </div>
+                                <div class="col-md-6 text-nowrap">
+                                </div>
+                                <div class="col-md-6 text-nowrap">
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row form-group">
+                                <div class=col>
+                                    <button class="btn btn-block"></button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class=col>
+                                    已购买：<span id=buyAmount>0</span>, <a id=detail href=#order-list data-toggle="collapse">订单详情...</a>
+                                </div>
+                            </div>
+                            <div id=order-list class="row collapse">
+                                <table class="table table-striped" style="font-size:0.6em;table-layout: fixed;">
+                                    <thead>
+                                        <th width=40px>No</th>
+                                        <th>价格（NAS）</th>
+                                        <th width=120px>数量（%1）</th>
+                                        <th>操作</th>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <div id=order-list-pages>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 购买对话框 -->
+    <div class="modal fade" id="buy-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 id="dlg-title" class="modal-title">购买</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body">
+                    <div class="container" >
+                        <div class=row>
+                            <div class="col-md-6">
+                                <label for="dlg-balance">余额：</label>
+                                <label id="dlg-balance" class=float-right>0 NAS</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dlg-spend">成本：</label>
+                                <label id="dlg-spend" class=float-right>0 NAS</label>                                
+                            </div>
+                        </div>
+                        <div class=row>
+                            <div class="col-md-12">
+                                <label for="dlg-number">购买：</label>
+                                <label id="dlg-buy-nas" class=float-right></label>                                
+                            </div>
+                            <div class="w-100"></div>
+                            <div class="col">
+                                <input id="dlg-number" style="width:100%;" data-slider-id="ex1Slider" type="text"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模态框底部 -->
+                <div class="modal-footer form-group">
+                    <div class="container" >
+                        <div class=row>
+                            <div class="offset-sm-1 col-sm-4">
+                                <button type="button" class="btn btn-block btn-mutil-line" data-dismiss="modal">取消</button>
+                            </div>
+                            <div class="offset-sm-2 col-sm-4">
+                                <button id="buy-btn" type="button" class="btn btn-block btn-mutil-line" onclick="onBuy()">确定</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="weixin-tip">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div style="text-align:center; padding:1em;">
+                    <div style="color: saddlebrown;margin:2em 0;" >请点击右上角的“...”，选择在浏览器打开</div>
+                    <img style="border-radius:0.5em;width: 100%;border: 2px solid;" src="images/weixin-tip.png" >
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade " id="web-wallet-tip">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                        <h4 id="rule-title" class="modal-title">温馨提示</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+    
+                    <!-- 模态框主体 -->
+                    <div class="modal-body">
+                        <div class="container">
+                            <div class="row">
+                                <span>币集市是基于星云链的一款应用，需要依赖星云chrome钱包插件，安装地址:
+                                    <a target='_blank' href='https://chrome.google.com/webstore/detail/nasextwallet/gehjkhmhclgnkkhpfamakecfgakkfkco'>Chrome Web Store</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="rule-dlg">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 id="rule-title" class="modal-title">集市规则</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div id=requires class="col-md-12">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div style="font-size: 1.1rem; font-weight: 500;">
+                                    <span data-i18n="intro"></span>
+                                </div>
+                                <p></p>
+                                <div style="font-size: 0.88rem;">
+                                    <span data-i18n="rules"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="libs/jquery-3.3.1.min.js"></script>
+    <script src="libs/bootstrap-4.0.0-dist/js/bootstrap.bundle.min.js" data-depends="jquery.slim"></script>
+    <script src="libs/bootstrap-slider/bootstrap-slider.min.js"></script>
+    <script src="libs/external/jquery.md5.js"></script>
+    <script src="libs/bootbox.min.js" data-depends="bootstrap jquery.slim"></script>
+    <script src="libs/jquery.qrcode.min.js" data-depends="jquery"></script>
+    <script src="libs/addtohomescreen/src/addtohomescreen.js"></script>
+    <script src="libs/blockies.min.js"></script>
+    <script src="dist/nebulas.js"></script>
+    <script src="libs/nebPay.js"></script>
+    <script src="js/1-localSave.js"></script>
+    <script src="js/home.v1.js"></script>
+    <script>
+        localSave.setItem("lang","zh");
+    </script>
+    <script src="js/i18n.js" data-depends="jquery.slim"></script>
+    <script src="js/env.js" data-depends="home.v1.js"></script>
+    <script src="js/ui-block.js" data-depends="bootbox blockies jquery.slim i18n.js nebulas.js"></script>
+    <script>
+        "use strict";
+
+        let nebulas = require("nebulas"),
+            Transaction = nebulas.Transaction,
+            Utils = nebulas.Utils,
+            Unit = nebulas.Unit,
+            neb = new nebulas.Neb(),
+            validateAll = uiBlock.validate();
+
+        let env = getEnv();
+        neb.setRequest(new nebulas.HttpRequest(env.url));
+
+        let NebPay = require("nebpay");
+        let nebPay = new NebPay();
+        
+        var currentBlock = 0;
+        let tokenInfos={};
+
+        let lang = localSave.getItem("lang");
+
+        //获取保存在本地的账号
+        let bindAddr = localSave.getItem("accountWallet");
+        bindAddr = bindAddr && bindAddr.length == 35?bindAddr:'';
+
+        // 页面加载时请求数据
+        let noNasExtWallet = typeof (webExtensionWallet) === "undefined";
+        $().ready(function () {
+            if (os.isPc) {
+                if (noNasExtWallet) {
+                    $("#web-wallet-tip").modal("show");
+                    if (bindAddr==="")
+                        bindAddr='n1K2nSbJWiKVnHCAi7PFEjGef7iDQVFsTs8';
+                } else {
+                    if (bindAddr===""){
+                        // 如果没有保存本地账号，则取浏览器钱包插件的账号
+                        if (typeof (NasExtWallet)!=="undefined") {
+                            setTimeout(function () {
+                                NasExtWallet.getUserAddress(function (addr) {
+                                    setBindAddr(addr);
+                                });
+                            },2000);
+                        }
+                        else {
+                            bindAddr='n1K2nSbJWiKVnHCAi7PFEjGef7iDQVFsTs8';
+                        }
+                    }
+                }
+            }
+
+            uiBlock.insert({
+                footer: ".footer",
+                header: ".header",
+                iconAddress: ".icon-address",
+                logoMain: [".logo-main",env],
+                numberComma: ".number-comma",
+            });
+
+            addToHomescreen({
+                //startDelay: 5, //开始的间隔
+                skipFirstVisit: true, //首次跳过出现
+                maxDisplayCount: 1 //最多出现次数
+            });
+
+            var showRules = localSave.getItem("showRules")!="false";
+
+            if(showRules) {
+                $("#rule-dlg").modal("show");
+                localSave.setItem("showRules",false);
+            }
+
+            if(isWeixin()) {
+                $("#weixin-tip").modal("show");
+            }
+            
+            neb.api.getNebState().then(function(state) {
+                currentBlock = parseInt(state.height);
+                getTokenInfosInReverse(0,0,10);
+
+                //自动刷新当前区块高度
+                setInterval(function(){
+                    neb.api.getNebState().then(function(state) {
+                        currentBlock = parseInt(state.height);
+                    });
+                },1500);
+            });
+            $('#buy-dialog').on('hidden.bs.modal', function () {
+                $('body').addClass("modal-open");
+            })
+        });
+
+        //计算已经购买的额度
+        function getBuyAmount(tokenInfo) {
+            let amount = 0;
+            if(bindAddr&&bindAddr!="") {
+                let orders = tokenInfo.orders;
+                for(var i=0;i<orders.length;++i) {
+                    var order = orders[i];
+                    if(order.addr==bindAddr) {
+                        amount += parseInt(order.number);
+                    }
+                }
+            }
+            return amount;
+        }
+
+        function onPageTo(obj,page) {
+            var infoDiv = $(obj).closest(".info");
+            var hash = infoDiv.attr("data-hash");
+            var tokenInfo = tokenInfos[hash];
+            showOrderList(tokenInfo,page);
+        }
+
+        function onPagePrev(obj) {
+            var pagination = $(obj).closest(".pagination");
+            var page = parseInt(pagination.attr('page')-1);
+            onPageTo(obj,page);
+        }
+
+        function onPageNext(obj) {
+            var pagination = $(obj).closest(".pagination");
+            var page = parseInt(pagination.attr('page')+1);
+            onPageTo(obj,page);
+        }
+
+        function showOrderList(tokenInfo, page) {
+            let orders = tokenInfo.orders;
+            let orderList = $("#order-list");
+            let html = '';
+            let from = orders.length-1-page*10;
+            let to = from-10;
+            if(to<0)
+                to=-1;
+            for(let i=from;i>to;--i) {
+                let order = orders[i];
+                if(order.addr == bindAddr) {
+                    html+='<tr>' +
+                    '<td>'+ (orders.length-i) +'</td>' +
+                    '<td><div class=text-nowrap>'+ order.price+'</div></td>' +
+                    '<td>'+ order.number+'</td>' +
+                    '<td><a href="javascript:void(0);" onclick="cancelOrder(this);return false;" token-hash='+tokenInfo.hash+' order-id='+i.toString()+' order-hash='+order.hash+'>取消订单</a></td>' +
+                    '</tr>';
+                }
+            }
+            orderList.find("tbody").html(html);
+            html='';
+            var pages = parseInt((orders.length+9)/10);
+            if(orders.length>10) {
+                html +='<ul class="pagination" style="overflow:auto;font-size:0.8rem;" page='+page+'>' +
+                    '<li class="page-item"><a class="page-link" style="width:6em;" href="javascript:" '+(page==0?'disabled=disabled':'onclick="onPagePrev(this)"')+'>前一页</a></li>';
+                for(let p=0;p<pages;++p) {
+                    html +='<li class="page-item'+(page==p?' active':'')+'"><a class="page-link" href="javascript:" onclick="onPageTo(this,'+p+')">'+(p+1)+'</a></li>';
+                }
+                html +='<li class="page-item"><a class="page-link" style="width:6em;" href="javascript:"'+(page==pages-1?'disabled=disabled':'onclick="onPageNext(this)"')+'>后一页</a></li>' +
+                '</ul>';
+            }
+            orderList.find("#order-list-pages").html(html);
+        }
+
+        function searchOrderId(tokenInfo, id, orderHash) {
+            let orders = tokenInfo.orders;
+            if(i<=orders.length && orders[id].hash == orderHash)
+                return id;
+            for(let i=id-1;i>=0;--i) {
+                if(orders[i].hash == orderHash)
+                    return i;
+            }
+            for(let i=id+1;i<orders.length;++i) {
+                if(orders[i].hash == orderHash)
+                    return i;
+            }
+            return -1;
+        }
+
+        function cancelOrder(obj) {
+            let _this=$(obj);
+            var hash=_this.attr("token-hash");
+            var id=_this.attr("order-id");
+            var orderHash=_this.attr("order-hash");
+            if(id>=tokenInfos.length)
+                return;
+
+            $(this).attr("disabled", "disabled");
+            try {
+                var serialNumber = nebPay.call(env.contract,"0","cancelBuy",JSON.stringify([hash, id, orderHash]),{
+                    qrcode: {
+                        showQRCode: noNasExtWallet
+                    },
+                    goods: {
+                        name: "cancelBuy"
+                    },
+                    callback: env.callback,
+                    listener: listener  //set listener for extension transaction result
+                });
+
+                $(this).removeAttr("disabled");
+            } catch (e) {
+                $(this).removeAttr("disabled");
+                bootbox.dialog({
+                    backdrop: true,
+                    onEscape: true,
+                    message: e,
+                    size: "large",
+                    title: "Error"
+                });
+            }
+
+            var intervalQuery = setInterval(function () {
+                funcIntervalQuery();
+            }, 10000);
+
+            function funcIntervalQuery() {
+                let options = {
+                    callback: env.callback
+                }
+                nebPay.queryPayInfo(serialNumber,options)   //search transaction result from server (result upload to server by app)
+                .then(function (resp) {
+                    console.log("sn:"+serialNumber+",tx result: " + resp)   //resp is a JSON string
+                    let respObject = JSON.parse(resp)
+                    if(respObject.code === 0 && respObject.data.status!=2){
+                        clearInterval(intervalQuery);
+                        if(respObject.data.execute_error=="") {
+                            let tokenInfo = tokenInfos[hash];
+                            if(!tokenInfo)
+                                return;
+                            id = searchOrderId(tokenInfo,id,orderHash);
+                            if(id>=0) {
+                                tokenInfo.orders.splice(id,1);
+                                showOrderList(tokenInfo,0);
+                            }
+                        }
+                        else {
+                            bootbox.dialog({
+                                backdrop: true,
+                                onEscape: true,
+                                message: "取消订单失败！",
+                                size: "large",
+                                title: "Error"
+                            });
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            }
+
+            function listener(resp) {
+                console.log("resp: " + JSON.stringify(resp))
+            }
+        }
+
+        let th3Format='';        
+        function showTokenInfo(hash) {
+            let tokenInfo = tokenInfos[hash];
+            let infoDiv = $('#info-dlg');
+            infoDiv.attr("data-hash",tokenInfo.hash);
+
+            if(th3Format==='')
+                th3Format = infoDiv.find("#order-list th:eq(2)").text()
+            infoDiv.find("#order-list th:eq(2)").text(th3Format.replace('%1',tokenInfo.symbol));
+
+            let progressValue =0;
+            if(tokenInfo.total>tokenInfo.sold) {
+                progressValue= ((tokenInfo.sold)*100/(tokenInfo.total)).toFixed(2);
+                if(progressValue<0)
+                    progressValue=0;
+                if(progressValue>100)
+                    progressValue=100;
+            }
+            
+            const lockStr = tokenInfo.locked?"(暂停)":"";
+            const badges = '<span class="badge badge-info badge-pill" data-toggle="tooltip" title="本时间根据区块高度计算得到">预计</span>';
+            let stateText,progressClass,btnText,btnState,btnClick,startTime,endTime;
+            let buyAmount = getBuyAmount(tokenInfo);
+            let na;
+            if(tokenInfo.beginBlock>currentBlock) {
+                stateText = '未开始';
+                progressClass='progress-bar progress-bar-striped bg-info';
+                btnText = "我要购买"+lockStr;
+                btnState = 'disabled';
+                btnClick = '';
+                startTime = formatTime(Date.now()+(tokenInfo.beginBlock-currentBlock)*15000)+badges
+                endTime = formatTime(Date.now()+(tokenInfo.endBlock-currentBlock)*15000)+badges;
+                na=' na';
+            }
+            else if(tokenInfo.endBlock>currentBlock){
+                stateText = '抢购中';
+                progressClass='progress-bar progress-bar-striped progress-bar-animated bg-info';
+                btnText = "我要购买"+lockStr;
+                btnState = tokenInfo.locked?' disabled':'';
+                btnClick = 'showBuyDialog(this)';
+                startTime = queryBlockTime(infoDiv, ".begin-time", tokenInfo.beginBlock);
+                endTime = formatTime(Date.now()+(tokenInfo.endBlock-currentBlock)*15000)+badges;
+                na='';
+            }
+            else {
+                stateText = '已结束';
+                progressClass='progress-bar bg-info';
+                btnText = "我要购买"+lockStr;
+                btnState = 'disabled';
+                btnClick = '';
+                startTime = queryBlockTime(infoDiv, ".begin-time", tokenInfo.beginBlock);
+                endTime = queryBlockTime(infoDiv, ".end-time", tokenInfo.endBlock);
+                na=' na';
+            }
+            btnState = '';
+            btnClick = 'showBuyDialog(this)';
+
+            if(na!=='') {
+                infoDiv.addClass('na');
+            }
+            else {
+                infoDiv.removeClass('na');
+            }
+
+            let header = infoDiv.find(".info-header");
+            //header.find("span:eq(0)").text('#'+(tokenInfo.id+1));
+            header.find("span:eq(0)").text(tokenInfo.title);
+            header.find("span:eq(1)").text('（'+stateText+'）');
+            header.find("i").text('hash:"'+ tokenInfo.hash +'"');
+
+            let body = infoDiv.find(".info-body");
+            body.find("img").attr("src","images/projects/"+tokenInfo.title+".png");
+            body.find(".col:eq(0)").text(tokenInfo.text);
+            body.find(".col:eq(1)>h6").text(stateText+'(已售额度：'+tokenInfo.sold+')');
+            let progress = body.find(".col:eq(1)>div>div");
+            progress.attr("class", progressClass);
+            progress.attr("value",tokenInfo.sold);
+            progress.attr("min",0);
+            progress.attr("aria-valuemax",tokenInfo.total);
+            progress.attr("style",'width:'+progressValue+'%;');
+            progress.children("span").text(progressValue+'%');
+            body.find(".col-md-12:eq(0)>span:eq(0)").text("0");
+            body.find(".col-md-12:eq(0)>span:eq(1)").text(tokenInfo.total);
+            body.find(".col-md-6:eq(0)>span").html(startTime);
+            body.find(".col-md-6:eq(1)>span").html(endTime);
+            body.find(".col-md-6:eq(2)").text('总共额度：'+ tokenInfo.total + ' ' + tokenInfo.symbol);
+            body.find(".col-md-6:eq(3)").text('已售额度：'+ tokenInfo.sold + ' ' + tokenInfo.symbol);
+            body.find(".col-md-6:eq(4)").text('剩余额度：'+ (tokenInfo.total-tokenInfo.sold).toString() + ' ' + tokenInfo.symbol);
+            body.find(".col-md-6:eq(5)").text('代币价格：'+ tokenInfo.price + ' NAS');
+            
+            body.find('#buyAmount').text(buyAmount+' '+tokenInfo.symbol);
+            showOrderList(tokenInfo,0);
+
+
+            infoDiv.find("button.btn").text(btnText)
+            .attr("disabled",btnState)
+            .attr("onclick",btnClick);
+            if(btnState=='disabled') {
+                infoDiv.find("button.btn").attr("disabled",btnState)
+            }
+            else {
+                infoDiv.find("button.btn").removeAttr("disabled")
+            }
+
+            infoDiv.modal("show");
+            infoDiv.find('[data-toggle="tooltip"]').tooltip();
+        }
+
+        function addTokenInfo(resultDiv, tokenInfo){
+            let html = '<div class="col-md-3 col-sm-4 col-xs-6" style="text-align:center;margin-bottom:1rem;" onclick=showTokenInfo("'+tokenInfo.hash+'")>' +
+                '<div style="border-radius:0.25em;background-color:#6db34a;max-width:280px;margin: auto;">' +
+                '<img style="border-radius:0.25em;width: 100%;max-width:280px;" src="images/projects/'+tokenInfo.title+'.png" >' +
+                '<h5 style="text-align:center;color:#f5f9f6;text-shadow: 0 0 16px #fff8;padding:0.2rem;">'+tokenInfo.title+'</h5>'+
+                '</div>' +
+                '</div>';
+
+            resultDiv.append(html);
+        }
+
+        function queryBlockTime(result,spanClassName,height) {
+            var timestamp = localSave.getItem("blockTime."+height);
+            if(timestamp) {
+                return formatTime(parseInt(timestamp)*1000);
+            }
+            
+            neb.api.getBlockByHeight({height:height,fullTransaction:false}).then(function(block) {
+                localSave.setItem("blockTime."+height,block.timestamp);
+                result.find(spanClassName).text(formatTime(block.timestamp*1000));
+            });
+            return "";
+        }
+
+        function adjustWidth() {
+            var firstItem = result.children(".tokenInfo").first();
+            var pageWidth = firstItem.children().first().outerWidth();
+            if(result.width()<pageWidth) {
+                var offset = result.outerWidth(true)-firstItem.width();
+                result.css({"transform":"scale("+result.outerWidth(true)/(pageWidth+offset)+")",
+                "transformOrigin":"left top"});
+            }
+        }
+
+        function getTokenInfosInReverse(state, from, number) {
+            try {
+                let resultDiv = $("#result");
+                resultDiv.html("");
+
+                let temp = {
+                    from: env.creator,
+                    to: env.contract,
+                    value: Unit.nasToBasic(Utils.toBigNumber("0")),
+                    nonce: 0,
+                    gasPrice: 1000000,
+                    gasLimit: 200000,
+                    contract: {"function":"getTokenInfosInReverse","args":JSON.stringify([state,from,number])}
+                };
+                neb.api.call(temp).then(function(tx) {
+                    $("#loading").fadeOut("fast");
+                    if(!!tx.execute_err) {
+                        bootbox.dialog({
+                            backdrop: true,
+                            onEscape: true,
+                            message: tx.execute_err,
+                            size: "large",
+                            title: "Error"
+                        });
+                        return;                                        
+                    }
+                    if(!tx||!tx.result){
+                        resultDiv.html("query fails.");
+                        return;                                        
+                    }
+                    
+                    let txResult = JSON.parse(tx.result);
+                    if(!txResult||txResult.total===0) {
+                        resultDiv.html("no data.");
+                    }
+                    else {
+                        //倒序获取每个项目信息
+                        let list = txResult.result;
+                        for(let i=0;i<list.length;++i) {
+                            let tokenInfo = list[i];
+                            tokenInfo.id = from+i;
+                            tokenInfos[tokenInfo.hash] = tokenInfo;
+                            addTokenInfo(resultDiv,tokenInfo);
+                            addTokenInfo(resultDiv,tokenInfo);
+                            addTokenInfo(resultDiv,tokenInfo);
+                            addTokenInfo(resultDiv,tokenInfo);
+                            addTokenInfo(resultDiv,tokenInfo);
+                        }
+
+                        //生成页面控件
+                    }
+                });
+            } catch (e) {
+                bootbox.dialog({
+                    backdrop: true,
+                    onEscape: true,
+                    message: e,
+                    size: "large",
+                    title: "Error"
+                });
+            }
+        }
+        function onBuy() {
+            var hash, amount, args;
+            amount = Utils.toBigNumber($("#dlg-number").val());
+            hash = $("#buy-dialog").attr("data-hash");
+            args=[hash];
+
+            var tokenInfo = tokenInfos[hash];
+            $("#buy-btn").attr("disabled", "disabled");
+            try {
+                var serialNumber = nebPay.call(env.contract,amount.times(tokenInfo.price),"buy",JSON.stringify(args),{
+                    qrcode: {
+                        showQRCode: noNasExtWallet
+                    },
+                    goods: {
+                        name: "buy"
+                    },
+                    callback: env.callback,
+                    listener: listener  //set listener for extension transaction result
+                });
+                $("#buy-btn").removeAttr("disabled");
+                $("#buy-dialog").modal('toggle');
+            } catch (e) {
+                $("#buy-btn").removeAttr("disabled");
+                bootbox.dialog({
+                    backdrop: true,
+                    onEscape: true,
+                    message: e,
+                    size: "large",
+                    title: "Error"
+                });
+            }
+
+            var intervalQuery = setInterval(function () {
+                funcIntervalQuery();
+            }, 10000);
+
+            function funcIntervalQuery() {
+                let options = {
+                    callback: env.callback
+                }
+                nebPay.queryPayInfo(serialNumber,options)   //search transaction result from server (result upload to server by app)
+                .then(function (resp) {
+                    console.log("sn:"+serialNumber+",tx result: " + resp)   //resp is a JSON string
+                    let respObject = JSON.parse(resp)
+                    if(respObject.code === 0 && respObject.data.status!=2){
+                        clearInterval(intervalQuery);
+                        if(respObject.data.execute_error=="") {
+                            tokenInfo.orders.push({
+                                hash:respObject.data.hash,
+                                addr:respObject.data.from,
+                                nasInWei:Utils.toBigNumber(respObject.data.value),
+                                price:Unit.fromBasic(respObject.data.price),
+                                number:parseInt(respObject.data.number),
+                                time:parseInt(respObject.data.timestamp)
+                            });
+
+                            showOrderList(tokenInfo,0);
+
+                            bootbox.dialog({
+                                backdrop: true,
+                                onEscape: true,
+                                message: '购买成功！',
+                                size: "large",
+                                title: "提示"
+                            });
+
+
+                            // 再次请求 购买成功之后的数据
+                            if(respObject.data.from != bindAddr){
+                                bindAddr = respObject.data.from;
+                                localSave.setItem("bindAddr", bindAddr);
+                            }
+                        }
+                        else {
+                            bootbox.dialog({
+                                backdrop: true,
+                                onEscape: true,
+                                message: '购买失败！（'+respObject.data.execute_error+'）',
+                                size: "large",
+                                title: "Error"
+                            });
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            }
+
+            function listener(resp) {
+                console.log("resp: " + JSON.stringify(resp))
+            }
+        }
+
+        function showBuyDialog(btn){
+            let divInfo = $("#info-dlg");
+            let hash = divInfo.attr("data-hash");
+            let tokenInfo = tokenInfos[hash];
+            if(!!tokenInfo) {
+                $("#dlg-title").text("购买 - "+tokenInfo.title);
+                let dlgNumber = $("#dlg-number");
+
+                if(dlgNumber[0].slide)
+                    dlgNumber.slider('destroy');
+                $("#dlg-buy-nas").text("0"+' '+tokenInfo.symbol);
+                dlgNumber.val(0);
+
+                $("#buy-dialog").modal('show');
+
+                if(bindAddr!=="") {
+                    try {
+                        neb.api.getAccountState(bindAddr).then(function (resp) {
+                            let left =tokenInfo.total-tokenInfo.sold;
+                            let maxValue = left;
+                            let balance = Utils.toBigNumber(resp.balance || 0);
+                            let nas = Unit.fromBasic(balance,"nas");
+                            let value = parseInt(nas/tokenInfo.price);
+                            if(maxValue>value)
+                                maxValue = value;
+
+                            dlgNumber.attr({
+                                "data-slider-step":1,
+                                "data-slider-min":0,
+                                "data-slider-max":maxValue,
+                                "data-slider-value":0
+                            });
+                            $("#buy-dialog").attr("data-hash",hash);
+                            $("#dlg-balance").text(nas.toFixed(4)+' NAS');
+
+                            dlgNumber.slider({
+                                formatter: function(value) {
+                                    return value+' '+tokenInfo.symbol;
+                                }
+                            });
+                            dlgNumber.on("slide", function(slideEvt) {
+                                $("#dlg-buy-nas").text(slideEvt.value+' '+tokenInfo.symbol);
+                                $("#dlg-spend").text((slideEvt.value*tokenInfo.price).toFixed(4)+' NAS');
+                            });
+                            dlgNumber[0].slide=true;
+                        });
+                    }
+                    catch (e) {
+                        bootbox.dialog({
+                            backdrop: true,
+                            onEscape: true,
+                            message: e,
+                            size: "large",
+                            title: "Error"
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

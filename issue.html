@@ -1,0 +1,204 @@
+<!doctype>
+<html>
+
+<head>
+    <link href="libs/bootstrap-4.0.0-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="stylesheets/style.css" rel="stylesheet">
+    <link href="stylesheets/ui-block.css" rel="stylesheet">
+    <link href="stylesheets/base.css" rel="stylesheet">
+    <link rel="shortcut icon" href="images/favicon.ico?v=1">
+    <title>发布项目</title>
+    <meta name=viewport content="width=device-width">
+    <meta charset="utf-8">
+</head>
+<body>
+    <div class=logo-main></div>
+    <div class="title" style="text-align: center;"></div>
+
+    <div class="container transfer">
+        <div class="form-group row">
+            <div class=col-md-6>
+                <label data-i18n=list/issuer-address>Owner Address</label>
+                <div class="issuer icon-address" name="issuer"></div>
+            </div>
+            <div class=col-md-6>
+                <label data-i18n=list/contract-address>Contract Address</label>
+                <div class="contract icon-address" name="contract"></div>
+            </div>
+            <div class=col-md-6>
+                <label for="title" data-i18n=issue/title>Title</label>
+                <input id="title" class="form-control" data-i18n="placeholder/title">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col>
+                <label for=text>
+                    <span data-i18n=register/text>Text</span>
+                </label>
+                <div class="text">
+                    <textarea id="text" class="form-control" style="height: 120px;" data-i18n="placeholder/text"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col>
+                <div style="background-color:lightblue;border:1px dashed;border-radius: 4px;color: darkslategray;width: 100%;padding:8px;font-size: 12px;">
+                    <span data-i18n="issue/tips"> </span>
+                    <span id="current-block">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col-md-6>
+                <label for="contract" data-i18n=issue/contract>Contract</label>
+                <input id="contract" class="form-control" data-i18n="placeholder/contract">
+            </div>
+            <div class=col-md-6>
+                <label for="symbol" data-i18n=issue/symbol>Symbol</label>
+                <input id="symbol" class="form-control" data-i18n="placeholder/symbol">
+            </div>
+            <div class=col-md-6>
+                <label for="decimals" data-i18n=issue/decimals>Decimals</label>
+                <input id="decimals" class="form-control" data-i18n="placeholder/decimals">
+            </div>
+            <div class=col-md-6>
+                <label for="price" data-i18n=issue/price>Price</label>
+                <input id="price" class="form-control" data-i18n="placeholder/price">
+            </div>
+            <div class=col-md-6>
+                <label for="total" data-i18n=issue/total>Total</label>
+                <input id="total" class="form-control" data-i18n="placeholder/total">
+            </div>
+            <div class=col-md-6>
+                <label for="begin-block" data-i18n=issue/begin-block>Begin Block</label>
+                <input id="begin-block" class="form-control" data-i18n="placeholder/begin-block">
+            </div>
+            <div class=col-md-6>
+                <label for="end-block" data-i18n=issue/end-block>End Block</label>
+                <input id="end-block" class="form-control" data-i18n="placeholder/end-block">
+            </div>
+        </div>
+        <div class="form-group row">        
+            <div class=col>
+                <button id=issue class="btn btn-block" data-i18n=issue/issue>Issue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id=result class="container" >
+    </div>
+    
+    <div class=footer></div>
+
+    <script src="libs/jquery-3.3.1.min.js"></script>
+    <script src="libs/bootstrap-4.0.0-dist/js/bootstrap.bundle.min.js" data-depends="jquery.slim"></script>
+    <script src="libs/external/jquery.md5.js"></script>
+    <script src="libs/bootbox.min.js" data-depends="bootstrap jquery.slim"></script>
+    <script src="libs/jquery.qrcode.min.js" data-depends="jquery"></script>
+    <script src="libs/blockies.min.js"></script>
+    <script src="dist/nebulas.js"></script>
+    <script src="libs/nebPay.js"></script>
+    <script src="js/1-localSave.js"></script>
+    <script src="js/home.v1.js"></script>
+    <script src="js/env.js" data-depends="home.v1.js"></script>
+    <script src="js/i18n.js" data-depends="jquery.slim"></script>
+    <script src="js/ui-block.js" data-depends="bootbox blockies jquery.slim i18n.js nebulas.js"></script>
+    <script>
+            "use strict";
+    
+            var nebulas = require("nebulas"),
+                Transaction = nebulas.Transaction,
+                Utils = nebulas.Utils,
+                Unit = nebulas.Unit,
+                neb = new nebulas.Neb(),
+                validateAll = uiBlock.validate();
+
+            let env = getEnv();
+            var lang = localSave.getItem("lang");
+
+            uiBlock.insert({
+                footer: ".footer",
+                //title: ".title",
+                header: ".header",
+                iconAddress: ".icon-address",
+                logoMain: [".logo-main",env],
+                numberComma: ".number-comma",
+            });
+
+            if((!os.isAndroid && !os.isPhone) && typeof (webExtensionWallet) === "undefined") {
+                bootbox.dialog({
+                    backdrop: true,
+                    onEscape: true,
+                    message: lang=='zh'?"需要安装 extensionWallet 插件！":"Need install extensionWallet plugin!",
+                    size: "large",
+                    title: "Error"
+                });
+            }
+            
+
+            neb.setRequest(new nebulas.HttpRequest(localSave.getItem("apiPrefix")));
+
+            neb.api.getNebState().then(function(state) {
+                $("#current-block").text(state.height);
+                $("#begin-block").val(state.height);
+                $("#end-block").val(parseInt(state.height)+100*60/15);
+            });
+
+            var NebPay = require("nebpay");
+            var nebPay = new NebPay();
+
+            $("#issue").on("click", onClickIssue);
+            $(".icon-address.issuer input").val(env.creator);
+            $(".icon-address.contract input").val(env.contract);
+            $("#title").val("title");
+            $("#text").val("text");
+            
+            function onClickIssue() {
+                var fromAddress, contractAddr, title, text, beginBlock, endBlock, contract, decimals, symbol,　price, total, amount, args;
+                if (validateAll()) {
+                    contractAddr = $(".icon-address.contract input").val();
+                    fromAddress = $(".icon-address.issuer input").val();
+                    title = $("#title").val();
+                    contract = $("#contract").val();
+                    symbol = $("#symbol").val();
+                    decimals = $("#decimals").val();
+                    price = $("#price").val();
+                    total = $("#total").val();
+                    text = $("#text").val();
+                    beginBlock = $("#begin-block").val();
+                    endBlock = $("#end-block").val();
+                    amount = "0";
+                    args=[fromAddress, title, contract, symbol, decimals, price, total, text, beginBlock, endBlock];
+
+                    $("#issue").attr("disabled", "disabled");
+                    try {
+                        var serialNumber = nebPay.call(contractAddr,Unit.nasToBasic(Utils.toBigNumber(amount)),"addToken",JSON.stringify(args),{
+                            qrcode: {
+                                showQRCode: false
+                            },
+                            goods: {
+                                name: "issue"
+                            },
+                            callback: localSave.getItem("callback"),
+                            listener: listener  //set listener for extension transaction result
+                        });
+                    } catch (e) {
+                        $("#issue").removeAttr("disabled");
+                        bootbox.dialog({
+                            backdrop: true,
+                            onEscape: true,
+                            message: e,
+                            size: "large",
+                            title: "Error"
+                        });
+                    }
+                }
+            }
+
+            function listener(resp) {
+                $("#issue").removeAttr("disabled");
+                console.log("resp: " + JSON.stringify(resp))
+            }
+        </script>
+</body>
+</html>

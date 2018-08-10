@@ -1,0 +1,396 @@
+<!doctype>
+<html>
+
+<head>
+    <link href="libs/bootstrap-4.0.0-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="stylesheets/style.css" rel="stylesheet">
+    <link href="stylesheets/ui-block.css" rel="stylesheet">
+    <link href="stylesheets/base.css" rel="stylesheet">
+    <link rel="shortcut icon" href="images/favicon.ico?v=1">
+    <title>设置项目</title>
+    <meta name=viewport content="width=device-width">
+    <meta charset="utf-8">
+</head>
+<body>
+    <div class=logo-main></div>
+
+    <div class="container transfer">
+        <div class="form-group row">
+            <div class=col-md-6>
+                <label data-i18n=list/issue-address>Owner Address</label>
+                <div class="issue icon-address" name="issue"></div>
+            </div>
+            <div class=col-md-6>
+                <label data-i18n=list/contract-address>Contract Address</label>
+                <div class="contract icon-address" name="contract"></div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col-md-12>
+                <label for=data>
+                    <span data-i18n=register/data>Data</span>
+                </label>
+                <div class="data">
+                    <textarea id="data" class="form-control" style="height: 120px;" data-i18n="placeholder/data"></textarea>
+                    <button id="upload-info" class="btn input-group-btn"> 上传 </button>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col-md-6>
+                <label for="hash" data-i18n=issue/hash>Hash</label>
+                <div class=input-group>
+                    <input id="hash" class="form-control" data-i18n="placeholder/hash">
+                    <button id="set-hash" class="btn input-group-btn"> 刷新 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="title" data-i18n=issue/title>Title</label>
+                <div class=input-group>
+                    <input id="title" class="form-control" data-i18n="placeholder/title">
+                    <button id="set-title" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="contract" data-i18n=issue/contract>Contract</label>
+                <div class=input-group>
+                    <input id="contract" class="form-control" data-i18n="placeholder/contract">
+                    <button id="set-contract" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="symbol" data-i18n=issue/symbol>Symbol</label>
+                <div class=input-group>
+                    <input id="symbol" class="form-control" data-i18n="placeholder/symbol">
+                    <button id="set-symbol" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="decimals" data-i18n=issue/decimals>Decimals</label>
+                <div class=input-group>
+                    <input id="decimals" class="form-control" data-i18n="placeholder/decimals">
+                    <button id="set-decimals" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="price" data-i18n=issue/price>Price</label>
+                <div class=input-group>
+                    <input id="price" class="form-control" data-i18n="placeholder/price">
+                    <button id="set-price" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="total" data-i18n=issue/total>Total</label>
+                <div class=input-group>
+                    <input id="total" class="form-control" data-i18n="placeholder/total">
+                    <button id="set-total" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-12>
+                <label for=text>
+                    <span data-i18n=register/text>Text</span>
+                </label>
+                <div class="text">
+                    <textarea id="text" class="form-control" style="height: 120px;" data-i18n="placeholder/text"></textarea>
+                    <button id="set-text" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col>
+                <div style="background-color:lightblue;border:1px dashed;border-radius: 4px;color: darkslategray;width: 100%;padding:8px;font-size: 12px;">
+                    <span data-i18n="issue/tips"> </span>
+                    <span id="current-block">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class=col-md-6>
+                <label for="begin-block" data-i18n=issue/begin-block>Begin Block</label>
+                <div class=input-group>
+                    <input id="begin-block" class="form-control" data-i18n="placeholder/begin-block">
+                    <button id="set-begin-block" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+            <div class=col-md-6>
+                <label for="end-block" data-i18n=issue/end-block>End Block</label>
+                <div class=input-group>
+                    <input id="end-block" class="form-control" data-i18n="placeholder/end-block">
+                    <button id="set-end-block" class="btn input-group-btn"> 设置 </button>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">        
+            <div class="offset-md-2 col-md-4">
+                <button id=lock class="btn input-group-btn" data-i18n=issue/lock>Lock</button>
+            </div>
+            <div class="offset-md-2 col-md-4">
+                <button id=unlock class="btn input-group-btn" data-i18n=issue/unlock>Unlock</button>
+            </div>
+        </div>
+        <hr>
+        <div class="form-group row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <div class=input-group-prepend>
+                        <span class="input-group-text">合约地址</span>
+                    </div>
+                    <input id="take-token-contract" class="form-control" data-i18n="placeholder/take-token-contract">
+                    <div class=input-group-prepend>
+                        <span class="input-group-text">合约精度</span>
+                    </div>
+                    <input id="take-token-decimals" class="form-control" data-i18n="placeholder/take-token-decimals" value="18">
+                </div>
+                <div class=input-group>
+                    <div class=input-group-prepend>
+                        <span class=input-group-text>提取数量</span>
+                    </div>
+                    <input id="take-token-value" class="form-control" data-i18n="placeholder/take-token-value">
+                    <div class="input-group-append">
+                        <button id=take-token class="btn input-group-btn" data-i18n=issue/take-token>Get Token</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">     
+            <div class="col-md-12">
+                <div class=input-group>
+                    <input id="take-nas-value" class="form-control" data-i18n="placeholder/take-nas-value">
+                    <button id=take-nas class="btn input-group-btn" data-i18n=issue/take-nas>Get Nas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id=result class="container" >
+    </div>
+    
+    <div class=footer></div>
+
+    <script src="libs/jquery-3.3.1.min.js"></script>
+    <script src="libs/bootstrap-4.0.0-dist/js/bootstrap.bundle.min.js" data-depends="jquery.slim"></script>
+    <script src="libs/external/jquery.md5.js"></script>
+    <script src="libs/bootbox.min.js" data-depends="bootstrap jquery.slim"></script>
+    <script src="libs/jquery.qrcode.min.js" data-depends="jquery"></script>
+    <script src="libs/blockies.min.js"></script>
+    <script src="dist/nebulas.js"></script>
+    <script src="libs/nebPay.js"></script>
+    <script src="js/1-localSave.js"></script>
+    <script src="js/home.v1.js"></script>
+    <script src="js/env.js" data-depends="home.v1.js"></script>
+    <script src="js/i18n.js" data-depends="jquery.slim"></script>
+    <script src="js/ui-block.js" data-depends="bootbox blockies jquery.slim i18n.js nebulas.js"></script>
+    <script>
+            "use strict";
+    
+            var nebulas = require("nebulas"),
+                Transaction = nebulas.Transaction,
+                Utils = nebulas.Utils,
+                Unit = nebulas.Unit,
+                neb = new nebulas.Neb(),
+                validateAll = uiBlock.validate();
+
+            let env = getEnv();
+            var lang = localSave.getItem("lang");
+
+            uiBlock.insert({
+                footer: ".footer",
+                title: ".title",
+                header: ".header",
+                iconAddress: ".icon-address",
+                logoMain: [".logo-main", env],
+                numberComma: ".number-comma",
+            });
+
+            var contractAddr = env.contract;
+            var issueAddr= env.creator;
+
+            if((!os.isAndroid && !os.isPhone) && typeof (webExtensionWallet) === "undefined") {
+                bootbox.dialog({
+                    backdrop: true,
+                    onEscape: true,
+                    message: lang=='zh'?"需要安装 extensionWallet 插件！":"Need install extensionWallet plugin!",
+                    size: "large",
+                    title: "Error"
+                });
+            }
+            
+            neb.setRequest(new nebulas.HttpRequest(localSave.getItem("apiPrefix")));
+
+            neb.api.getNebState().then(function(state) {
+                $("#current-block").text(state.height);
+                $("#begin-block").val(state.height);
+                $("#end-block").val(parseInt(state.height)+100*60/15);
+            });
+
+            var NebPay = require("nebpay");
+            var nebPay = new NebPay();
+
+            $(".icon-address.issue input").val(issueAddr);
+            $(".icon-address.contract input").val(contractAddr);
+
+
+            $("#set-hash").click(function(){
+                var hash = $("#hash").val();
+
+                contractAddr = $(".icon-address.contract input").val();
+
+                var param = 
+                {
+                    from: contractAddr,
+                    to: contractAddr,
+                    value: Unit.nasToBasic(Utils.toBigNumber("0")),
+                    nonce: 0,
+                    gasPrice: 1000000,
+                    gasLimit: 200000,
+                    contract: {"function":"getTokenInfo","args":JSON.stringify([hash])}
+                };
+                neb.api.call(param)
+                .then(function(tx) {
+                    let info = JSON.parse(tx.result);
+                    if(info) {
+                        $("#data").val(JSON.stringify(info));
+                        $("#title").val(info.title);
+                        $("#contract").val(info.contract);
+                        $("#symbol").val(info.symbol);
+                        $("#decimals").val(info.decimals);
+                        $("#price").val(info.price);
+                        $("#total").val(info.total);
+                        $("#text").val(info.text);
+                        $("#begin-block").val(info.beginBlock);
+                        $("#end-block").val(info.endBlock);
+                        if(info.locked) {
+                            $("#lock").attr("disabled","disabled");
+                            $("#unlock").removeAttr("disabled");
+                        }
+                        else {
+                            $("#unlock").attr("disabled","disabled");
+                            $("#lock").removeAttr("disabled");
+                        }
+                    }
+                    else {
+                        bootbox.dialog({
+                            backdrop: true,
+                            onEscape: true,
+                            message: "没有找到活动："+hash,
+                            size: "large",
+                            title: "Error"
+                        });
+                    }
+                });
+            });
+
+            $("#upload-info").click(function(){
+                var hash = $("#hash").val();
+                var data = $("#data").val();
+                onClickSetBtn(this,"uploadToken",[hash,data]);
+            });
+
+            $("#set-title").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#title").val();
+                onClickSetBtn(this,"setTitle",[hash,title]);
+            });
+
+            $("#set-contract").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#contract").val();
+                onClickSetBtn(this,"setContract",[hash,title]);
+            });
+
+            $("#set-symbol").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#symbol").val();
+                onClickSetBtn(this,"setSymbol",[hash,title]);
+            });
+
+            $("#set-decimals").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#decimals").val();
+                onClickSetBtn(this,"setDecimals",[hash,title]);
+            });
+
+            $("#set-price").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#price").val();
+                onClickSetBtn(this,"setPrice",[hash,title]);
+            });
+
+            $("#set-total").click(function(){
+                var hash = $("#hash").val();
+                var title = $("#total").val();
+                onClickSetBtn(this,"setTotal",[hash,title]);
+            });
+
+            $("#set-text").click(function(){
+                var hash = $("#hash").val();
+                var text = $("#text").val();
+                onClickSetBtn(this,"setText",[hash,text]);
+            });
+
+            $("#set-begin-block").click(function(){
+                var hash = $("#hash").val();
+                var beginBlock = $("#begin-block").val();
+                onClickSetBtn(this,"setBeginBlock",[hash,beginBlock]);
+            });
+
+            $("#set-end-block").click(function(){
+                var hash = $("#hash").val();
+                var endBlock = $("#end-block").val();
+                onClickSetBtn(this,"setEndBlock",[hash,endBlock]);
+            });
+
+            $("#lock").click(function(){
+                var hash = $("#hash").val();
+                onClickSetBtn(this,"lock",[hash,true]);
+            });
+
+            $("#unlock").click(function(){
+                var hash = $("#hash").val();
+                onClickSetBtn(this,"lock",[hash,false]);
+            });
+            $("#take-token").click(function(){
+                var contract = $("#take-token-contract").val();
+                var decimals = $("#take-token-decimals").val().parseInt();
+                var token = $("#take-token-value").val();
+                var tokenInWei = Utils.toBigNumber(token).shift(decimals);
+                onClickSetBtn(this,"takeTokenByAdmin",[contract,tokenInWei]);
+            });
+
+            $("#take-nas").click(function(){
+                var nas = $("#take-nas-value").val();
+                var nasInWei = Unit.nasToBasic(Utils.toBigNumber(nas))
+                onClickSetBtn(this,"takeNasByAdmin",[nasInWei]);
+            });
+            
+            function onClickSetBtn(btn,func,args) {
+                contractAddr = $(".icon-address.contract input").val();
+                $(btn).attr("disabled", "disabled");
+                try {
+                    var serialNumber = nebPay.call(contractAddr,Unit.nasToBasic(Utils.toBigNumber(0)),func,JSON.stringify(args),{
+                        qrcode: {
+                            showQRCode: false
+                        },
+                        goods: {
+                            name: func
+                        },
+                        callback: localSave.getItem("callback"),
+                        listener: function(resp){
+                            $(btn).removeAttr("disabled");
+                            console.log("resp: " + JSON.stringify(resp))
+                        }  //set listener for extension transaction result
+                    });
+                } catch (e) {
+                    $(btn).removeAttr("disabled");
+                    bootbox.dialog({
+                        backdrop: true,
+                        onEscape: true,
+                        message: e,
+                        size: "large",
+                        title: "Error"
+                    });
+                }
+            }
+        </script>
+</body>
+</html>

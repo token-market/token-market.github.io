@@ -1,0 +1,118 @@
+body{
+  background-color:#f5f3f2;
+}
+
+span.warning{
+  color:#eeaa00;
+}
+
+span.error{
+  color:#dd0000;
+}
+
+span.ok{
+  color:#00aa00;
+}
+.modal{
+  background-color:#7777;
+}
+.info{
+  margin-bottom: 0.5em;
+  border-radius: 0.3em;
+}
+
+.badge-info{
+  background-color: #fff4eb;
+  color:#28a745;
+}
+.badge-info.na{
+  color: #87c996;
+}
+
+.icon-xinxi {
+  color:#28a745;  
+}
+.icon-xinxi.na {
+  color:#87c996;  
+}
+.cert-title{
+  text-align: center;
+  color: #28a745;
+}
+
+.info-header {
+  background-color:#6db34a;
+}
+
+.info-header.na {
+  background-color:#9ed184;
+}
+
+.bg-info {
+  background-color: #28a745 !important;
+}
+
+.bg-info.na{
+  background-color: #87c996 !important;
+}
+
+.card-body {
+  padding:1em;
+}
+.card-header{
+  padding:0.7em 1em;
+  color: #fff4eb;
+  cursor:hand
+}
+
+.card-header.na{
+  padding:0.7em 1em;
+  color: #ffffff;
+}
+
+.header-hash {
+  margin-bottom:-0.6em;
+  color:#b9d8b1;
+}
+.cert-name{
+  text-align: left;
+}
+
+.cert-text{
+  text-align: left
+}
+
+.cert-issuer{
+  text-align: right;
+}
+
+.cert-date{
+  text-align: right;
+}
+.bid-state{
+  font-size: 0.8em;
+  text-align: center;
+}
+#ex1Slider .slider-selection {
+	background: #17a2b8;
+}
+.tooltip.in {
+  opacity: 0.9;
+}
+
+.btn-mutil-line{
+  margin-top:0.8em;
+}
+.text-nowrap{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.info-header.collapsed > h5 > span.iconfont:before {
+  content: "\e601";
+}
+
+.info-header > h5 > span.iconfont:before {
+  content: "\e600";
+}
