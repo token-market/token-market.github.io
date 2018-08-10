@@ -292,6 +292,20 @@ TokenMarketContract.prototype = {
     },
 
     //设置代币介绍内容
+    setTitle:function(hash, newTitle) {
+        var token = this._tokens.get(hash);
+        if(!token) {
+            throw new Error("no token matched!");
+        }
+        var from = Blockchain.transaction.from;
+        if(token.ownerAddr !== from && from !== this._admin) {
+            throw new Error("not owner address!")
+        }
+        token.title = newTitle;
+        this._tokens.set(hash,token);
+    },
+
+    //设置代币介绍内容
     setText:function(hash, newText) {
         var token = this._tokens.get(hash);
         if(!token) {

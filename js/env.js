@@ -15,7 +15,7 @@ const c_envs = [
         chainId: 1001, 
         name: "Testnet", 
         url: "https://testnet.nebulas.io", 
-        contract:"n1dwQFPxLg4MVwysgBWV3N9GQoH3L5tBdqF",
+        contract:"n1jcYzHLokpykGU9btr74XZCxtQnvBMsa6K",
         creator:"n1K2nSbJWiKVnHCAi7PFEjGef7iDQVFsTs8",
         explorer:"https://explorer.nebulas.io/#/testnet/",
         callback:"https://pay.nebulas.io/api/pay",
