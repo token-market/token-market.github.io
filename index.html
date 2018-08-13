@@ -19,14 +19,15 @@
     <meta charset="utf-8">
     
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <!--script async src="https://www.googletagmanager.com/gtag/js?id=UA-121345599-1"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-123834663-1"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'UA-121345599-1');
-    </script-->
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-123834663-1');
+    </script>
+
     
     <style>
      .tooltip-inner > p {
@@ -204,18 +205,21 @@
                                 <label id="dlg-balance" class=float-right>0 NAS</label>
                             </div>
                             <div class="col-md-6">
+                                <label for="dlg-price">价格：</label>
+                                <label id="dlg-price" class=float-right></label>
+                            </div>
+                            <div class="col-md-6">
                                 <label for="dlg-spend">成本：</label>
                                 <label class=float-right style="width: 2.4rem;text-align: right;">NAS</label>
                                 <input id="dlg-spend" class=float-right value="0"></input>
                             </div>
-                        </div>
-                        <div class=row>
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label for="dlg-buy-token">购买：</label>
                                 <label id="token-symbol" class=float-right style="width: 2.4rem;text-align: right;"></label>
                                 <input id="dlg-buy-token" class=float-right value="0"></input>
                             </div>
-                            <div class="w-100"></div>
+                        </div>
+                        <div class=row>
                             <div class="col">
                                 <input id="dlg-number" style="width:100%;" data-slider-id="ex1Slider" type="text"/>
                             </div>
@@ -788,10 +792,6 @@
                         tokenInfo.id = from+i;
                         tokenInfos[tokenInfo.hash] = tokenInfo;
                         addTokenInfo(resultDiv,tokenInfo);
-                        addTokenInfo(resultDiv,tokenInfo);
-                        addTokenInfo(resultDiv,tokenInfo);
-                        addTokenInfo(resultDiv,tokenInfo);
-                        addTokenInfo(resultDiv,tokenInfo);
                     }
 
                     //生成页面控件
@@ -910,6 +910,7 @@
                 let maxValue =tokenInfo.total-tokenInfo.sold;
                 $("#dlg-title").text("购买 - "+tokenInfo.title);
                 $("#dlg-balance").text('0 NAS');
+                $("#dlg-price").text(tokenInfo.price+' NAS');
                 $("#dlg-buy-token").val(0);
                 $("#dlg-spend").val(0);
                 $("#token-symbol").text(tokenInfo.symbol);
