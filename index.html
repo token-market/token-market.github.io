@@ -43,6 +43,14 @@
     a[disabled] {
         color:lightgrey !important;
     }
+    #dlg-spend {
+        width: 6.4rem;
+        text-align: right;
+    }
+    #dlg-buy-token {
+        width: 6.4rem;
+        text-align: right;
+    }
     .page-item.active .page-link {
         z-index: 1;
         color: #fff;
@@ -197,13 +205,15 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="dlg-spend">成本：</label>
-                                <label id="dlg-spend" class=float-right>0 NAS</label>                                
+                                <label class=float-right style="width: 2.4rem;text-align: right;">NAS</label>
+                                <input id="dlg-spend" class=float-right value="0"></input>
                             </div>
                         </div>
                         <div class=row>
                             <div class="col-md-12">
-                                <label for="dlg-number">购买：</label>
-                                <label id="dlg-buy-nas" class=float-right></label>                                
+                                <label for="dlg-buy-token">购买：</label>
+                                <label id="token-symbol" class=float-right style="width: 2.4rem;text-align: right;"></label>
+                                <input id="dlg-buy-token" class=float-right value="0"></input>
                             </div>
                             <div class="w-100"></div>
                             <div class="col">
@@ -345,7 +355,7 @@
         // 页面加载时请求数据
         let noNasExtWallet = true;
         $().ready(function () {
-            if (os.isPc) {
+             if (os.isPc) {
                 noNasExtWallet = typeof (webExtensionWallet) === "undefined";
                 if (noNasExtWallet) {
                     $("#web-wallet-tip").modal("show");
@@ -398,16 +408,24 @@
                 getTokenInfosInReverse(0,0,10);
 
                 //自动刷新当前区块高度
-                setInterval(function(){
-                    neb.api.getNebState().then(function(state) {
-                        currentBlock = parseInt(state.height);
-                    });
-                },1500);
-            });
+                setInterval(getNebState,1500);
+            })
+            .catch(function (err) {
+                console.log(err);
+            })
             $('#buy-dialog').on('hidden.bs.modal', function () {
                 $('body').addClass("modal-open");
             })
         });
+
+        function getNebState() {
+            neb.api.getNebState().then(function(state) {
+                currentBlock = parseInt(state.height);
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+        }
 
         function setBindAddr(addr) {
             bindAddr = addr;
@@ -711,6 +729,9 @@
             neb.api.getBlockByHeight({height:height,fullTransaction:false}).then(function(block) {
                 localSave.setItem("blockTime."+height,block.timestamp);
                 result.find(spanClassName).text(formatTime(block.timestamp*1000));
+            })
+            .catch(function(err){
+                console.log(err);
             });
             return "";
         }
@@ -726,58 +747,57 @@
         }
 
         function getTokenInfosInReverse(state, from, number) {
-            try {
-                let resultDiv = $("#result");
-                resultDiv.html("");
+            let resultDiv = $("#result");
+            resultDiv.html("");
 
-                let temp = {
-                    from: env.creator,
-                    to: env.contract,
-                    value: Unit.nasToBasic(Utils.toBigNumber("0")),
-                    nonce: 0,
-                    gasPrice: 1000000,
-                    gasLimit: 200000,
-                    contract: {"function":"getTokenInfosInReverse","args":JSON.stringify([state,from,number])}
-                };
-                neb.api.call(temp).then(function(tx) {
-                    $("#loading").fadeOut("fast");
-                    if(!!tx.execute_err) {
-                        bootbox.dialog({
-                            backdrop: true,
-                            onEscape: true,
-                            message: tx.execute_err,
-                            size: "large",
-                            title: "Error"
-                        });
-                        return;                                        
+            let temp = {
+                from: env.creator,
+                to: env.contract,
+                value: Unit.nasToBasic(Utils.toBigNumber("0")),
+                nonce: 0,
+                gasPrice: 1000000,
+                gasLimit: 200000,
+                contract: {"function":"getTokenInfosInReverse","args":JSON.stringify([state,from,number])}
+            };
+            neb.api.call(temp).then(function(tx) {
+                $("#loading").fadeOut("fast");
+                if(!!tx.execute_err) {
+                    bootbox.dialog({
+                        backdrop: true,
+                        onEscape: true,
+                        message: tx.execute_err,
+                        size: "large",
+                        title: "Error"
+                    });
+                    return;                                        
+                }
+                if(!tx||!tx.result){
+                    resultDiv.html("query fails.");
+                    return;                                        
+                }
+                
+                let txResult = JSON.parse(tx.result);
+                if(!txResult||txResult.total===0) {
+                    resultDiv.html("no data.");
+                }
+                else {
+                    //倒序获取每个项目信息
+                    let list = txResult.result;
+                    for(let i=0;i<list.length;++i) {
+                        let tokenInfo = list[i];
+                        tokenInfo.id = from+i;
+                        tokenInfos[tokenInfo.hash] = tokenInfo;
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
                     }
-                    if(!tx||!tx.result){
-                        resultDiv.html("query fails.");
-                        return;                                        
-                    }
-                    
-                    let txResult = JSON.parse(tx.result);
-                    if(!txResult||txResult.total===0) {
-                        resultDiv.html("no data.");
-                    }
-                    else {
-                        //倒序获取每个项目信息
-                        let list = txResult.result;
-                        for(let i=0;i<list.length;++i) {
-                            let tokenInfo = list[i];
-                            tokenInfo.id = from+i;
-                            tokenInfos[tokenInfo.hash] = tokenInfo;
-                            addTokenInfo(resultDiv,tokenInfo);
-                            addTokenInfo(resultDiv,tokenInfo);
-                            addTokenInfo(resultDiv,tokenInfo);
-                            addTokenInfo(resultDiv,tokenInfo);
-                            addTokenInfo(resultDiv,tokenInfo);
-                        }
 
-                        //生成页面控件
-                    }
-                });
-            } catch (e) {
+                    //生成页面控件
+                }
+            })
+            .catch (function(e) {
                 bootbox.dialog({
                     backdrop: true,
                     onEscape: true,
@@ -785,7 +805,7 @@
                     size: "large",
                     title: "Error"
                 });
-            }
+            });
         }
         function onBuy() {
             var hash, amount, args;
@@ -883,61 +903,74 @@
 
         function showBuyDialog(btn){
             let divInfo = $("#info-dlg");
+            var dlgNumber = $("#dlg-number");
             let hash = divInfo.attr("data-hash");
-            let tokenInfo = tokenInfos[hash];
+            var tokenInfo = tokenInfos[hash];
             if(!!tokenInfo) {
+                let maxValue =tokenInfo.total-tokenInfo.sold;
                 $("#dlg-title").text("购买 - "+tokenInfo.title);
-                let dlgNumber = $("#dlg-number");
+                $("#dlg-balance").text('0 NAS');
+                $("#dlg-buy-token").val(0);
+                $("#dlg-spend").val(0);
+                $("#token-symbol").text(tokenInfo.symbol);
+                $("#buy-dialog").attr("data-hash",hash);
 
-                if(dlgNumber[0].slide)
-                    dlgNumber.slider('destroy');
-                $("#dlg-buy-nas").text("0"+' '+tokenInfo.symbol);
-                dlgNumber.val(0);
-
-                $("#buy-dialog").modal('show');
-
-                if(bindAddr!=="") {
-                    try {
-                        neb.api.getAccountState(bindAddr).then(function (resp) {
-                            let left =tokenInfo.total-tokenInfo.sold;
-                            let maxValue = left;
-                            let balance = Utils.toBigNumber(resp.balance || 0);
-                            let nas = Unit.fromBasic(balance,"nas");
-                            let value = parseInt(nas/tokenInfo.price);
-                            if(maxValue>value)
-                                maxValue = value;
-
-                            dlgNumber.attr({
-                                "data-slider-step":1,
-                                "data-slider-min":0,
-                                "data-slider-max":maxValue,
-                                "data-slider-value":0
-                            });
-                            $("#buy-dialog").attr("data-hash",hash);
-                            $("#dlg-balance").text(nas.toFixed(4)+' NAS');
-
-                            dlgNumber.slider({
-                                formatter: function(value) {
-                                    return value+' '+tokenInfo.symbol;
-                                }
-                            });
-                            dlgNumber.on("slide", function(slideEvt) {
-                                $("#dlg-buy-nas").text(slideEvt.value+' '+tokenInfo.symbol);
-                                $("#dlg-spend").text((slideEvt.value*tokenInfo.price).toFixed(4)+' NAS');
-                            });
-                            dlgNumber[0].slide=true;
-                        });
-                    }
-                    catch (e) {
-                        bootbox.dialog({
-                            backdrop: true,
-                            onEscape: true,
-                            message: e,
-                            size: "large",
-                            title: "Error"
-                        });
-                    }
+                if(!!dlgNumber[0].slider) {
+                    var slider = dlgNumber[0].slider;
+                    slider.slider("setValue",0);
+                    slider.slider("setAttribute","max",maxValue);
                 }
+                else {
+                    dlgNumber.attr({
+                        "data-slider-step":1,
+                        "data-slider-min":0,
+                        "data-slider-max":maxValue,
+                        "data-slider-value":0
+                    });
+
+                    var slider = dlgNumber.slider({
+                        formatter: function(value) {
+                            return value+' '+tokenInfo.symbol;
+                        }
+                    });
+                    dlgNumber.on("slide", function(slideEvt) {
+                        $("#dlg-buy-token").val(slideEvt.value);
+                        $("#dlg-spend").val((slideEvt.value*tokenInfo.price).toFixed(4));
+                    });
+                    dlgNumber[0].slider=slider;
+                    
+                    $("#dlg-buy-token").on("input",function(obj){
+                        let val = parseInt($("#dlg-buy-token").val())||0;
+                        $("#dlg-spend").val((val*tokenInfo.price).toFixed(4));
+                        slider.slider("setValue",val);
+                    });
+                    $("#dlg-spend").on("input",function(obj){
+                        let val = parseFloat($("#dlg-spend").val())||0;
+                        if(tokenInfo.price>0) {
+                            let num = parseInt(val/tokenInfo.price);
+                            $("#dlg-buy-token").val(num);
+                            slider.slider("setValue",num);
+                        }
+                    });
+                }
+                    
+                if(bindAddr!=="") {
+                    neb.api.getAccountState(bindAddr).then(function (resp) {
+                        let maxValue =tokenInfo.total-tokenInfo.sold;
+                        let balance = Utils.toBigNumber(resp.balance || 0);
+                        let nas = Unit.fromBasic(balance,"nas");
+                        let value = parseInt(nas/tokenInfo.price);
+                        if(maxValue>value)
+                            maxValue = value;
+
+                        slider.slider("setAttribute","max",maxValue);
+                        $("#dlg-balance").text(nas.toFixed(4)+' NAS');
+                    })
+                    .catch (function(err) {
+                        console.log(err);
+                    });
+                }
+                $("#buy-dialog").modal('show');
             }
         }
     </script>
