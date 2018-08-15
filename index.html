@@ -200,6 +200,10 @@
                 <div class="modal-body">
                     <div class="container" >
                         <div class=row>
+                            <div class="col-md-12 text-nowrap">
+                                <label for="dlg-address">地址：</label>
+                                <label id="dlg-address" style="width: calc(100% - 58px);text-align: right;"></label>
+                            </div>
                             <div class="col-md-6">
                                 <label for="dlg-balance">余额：</label>
                                 <label id="dlg-balance" class=float-right>0 NAS</label>
@@ -792,6 +796,10 @@
                         tokenInfo.id = from+i;
                         tokenInfos[tokenInfo.hash] = tokenInfo;
                         addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
+                        addTokenInfo(resultDiv,tokenInfo);
                     }
 
                     //生成页面控件
@@ -908,6 +916,7 @@
             var tokenInfo = tokenInfos[hash];
             if(!!tokenInfo) {
                 let maxValue =tokenInfo.total-tokenInfo.sold;
+                $("#dlg-address").text(bindAddr||"未绑定");
                 $("#dlg-title").text("购买 - "+tokenInfo.title);
                 $("#dlg-balance").text('0 NAS');
                 $("#dlg-price").text(tokenInfo.price+' NAS');

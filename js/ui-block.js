@@ -221,12 +221,13 @@ var uiBlock = function () {
             i18n.run($(selector)
                 .addClass("container logo-main")
                 .html(
-                    "<div class>" +
-                    '    <div><span class="iconfont icon-jiaoyizhanghuguanli" style="font-size: 3.6em;line-height: 1.2em;text-shadow: 0 0 20px #0f7d2888;"></span>' +
-                    '    <span style="font-size: 1.8em;text-shadow: 0 0 20px #0f7d2888;" data-i18n=title></span>' +
-                    '    </div>' +
-                    '    <span style="color:#7bc58c" data-i18n=subtitle></span>' +
-                    '    <div class=float-right>' + 
+                    '<div style="position:relative;">' +
+                    '   <div style="display:inline-block;">' +
+                    '       <span class="iconfont icon-jiaoyizhanghuguanli" style="font-size: 2.6em;line-height: 1.2em;text-shadow: 0 0 20px #0f7d2888;"></span>' +
+                    '       <span style="font-size: 1.25em;text-shadow: 0 0 20px #0f7d2888;" data-i18n=title></span>' +
+                    '       <span style="color:#bbb" data-i18n=subtitle></span>' +
+                    '   </div>' +
+                    '   <div class=float-right style="display:inline-block;bottom:3px;right: 0;position: absolute;background:#f6f3f2">' + 
                     '       <a id="rule-link" class="btn" data-i18n="rule-link"></a>' +
                     '       <a class="btn" target="_blank" href="https://explorer.nebulas.io/#/'+(env.chainId==1001?'testnet/':'')+'address/'+ env.contract+'" data-i18n="contract-link"></a>' +
                     '       <a class="btn" target="_blank" href="https://nano.nebulas.io/" data-i18n="wallet-link"></a>'+ 
@@ -235,7 +236,7 @@ var uiBlock = function () {
                     // '            <div class="dropdown-menu lang" aria-labelledby=logo-main-dropdown-2>' + sLangButtons +
                     // "            </div>" +
                     // "        </div>" +
-                    "    </div>" +
+                    "   </div>" +
                     "</div><hr>")
                 .on("click", "#rule-link", onRuleLink)
                 .on("click", ".api > button", onClickMenuApi)

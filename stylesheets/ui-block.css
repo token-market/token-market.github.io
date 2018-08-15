@@ -105,13 +105,6 @@ body {
     height: 60px;
 }
 
-.logo-main .float-right {
-    top: -36px;
-    align-items: center;
-    display: flex;
-    justify-content: flex-end;
-}
-
 /* overrides - base.css */
 .logo-main .float-right .btn {
     background-color: #f6f3f2;
