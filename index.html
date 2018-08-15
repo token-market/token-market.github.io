@@ -515,10 +515,28 @@
             }
             orderList.find("#order-list-pages").html(html);
         }
+        function updateTokenInfo(hash) {
+            let temp = {
+                from: env.creator,
+                to: env.contract,
+                value: 0,
+                nonce: 0,
+                gasPrice: 1000000,
+                gasLimit: 200000,
+                contract: {"function":"getTokenInfo","args":JSON.stringify([hash])}
+            };
+            neb.api.call(temp).then(function(tx) {
+                tokenInfos[hash] = JSON.parse(tx.result);
+                showTokenInfo(hash)
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+        }
 
         function searchOrderId(tokenInfo, id, orderHash) {
             let orders = tokenInfo.orders;
-            if(i<=orders.length && orders[id].hash == orderHash)
+            if(id<=orders.length && orders[id].hash == orderHash)
                 return id;
             for(let i=id-1;i>=0;--i) {
                 if(orders[i].hash == orderHash)
@@ -579,14 +597,14 @@
                     if(respObject.code === 0 && respObject.data.status!=2){
                         clearInterval(intervalQuery);
                         if(respObject.data.execute_error=="") {
-                            let tokenInfo = tokenInfos[hash];
-                            if(!tokenInfo)
-                                return;
-                            id = searchOrderId(tokenInfo,id,orderHash);
-                            if(id>=0) {
-                                tokenInfo.orders.splice(id,1);
-                                showOrderList(tokenInfo,0);
-                            }
+                            updateTokenInfo(hash);
+                            bootbox.dialog({
+                                backdrop: true,
+                                onEscape: true,
+                                message: '取消订单成功！',
+                                size: "large",
+                                title: "提示"
+                            });
                         }
                         else {
                             bootbox.dialog({
@@ -862,16 +880,8 @@
                     if(respObject.code === 0 && respObject.data.status!=2){
                         clearInterval(intervalQuery);
                         if(respObject.data.execute_error=="") {
-                            tokenInfo.orders.push({
-                                hash:respObject.data.hash,
-                                addr:respObject.data.from,
-                                nasInWei:Utils.toBigNumber(respObject.data.value),
-                                price:Unit.fromBasic(respObject.data.price),
-                                number:parseInt(respObject.data.number),
-                                time:parseInt(respObject.data.timestamp)
-                            });
 
-                            showOrderList(tokenInfo,0);
+                            updateTokenInfo(hash);
 
                             bootbox.dialog({
                                 backdrop: true,
@@ -881,8 +891,6 @@
                                 title: "提示"
                             });
 
-
-                            // 再次请求 购买成功之后的数据
                             if(respObject.data.from != bindAddr){
                                 bindAddr = respObject.data.from;
                                 localSave.setItem("bindAddr", bindAddr);
