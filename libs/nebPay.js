@@ -11,6 +11,34 @@ var isChrome = function () {
     return false;
 };
 
+var isExtInstalled = function () {
+    return typeof NasExtWallet !== 'undefined';
+};
+
+var isMobile = function () {
+    var userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf("mobile") > -1) {
+        return true;
+    }
+    return false;
+};
+
+var isNano = function () {
+    var userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf("nasnanoapp") > -1) {
+        return true;
+    }
+    return false;
+};
+
+var isWechat = function () {
+    var userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf("micromessenger") > -1) {
+        return true;
+    }
+    return false;
+};
+
 var randomCode = function (len) {
     var d,
         e,
@@ -24,26 +52,167 @@ var randomCode = function (len) {
     return c;
 };
 
+var addCssRule = function () {
+    function createStyleSheet() {
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        document.head.appendChild(style);
+        return style.sheet;
+    }
+
+    var sheet = createStyleSheet();
+
+    return function (selector, rules, index) {
+        index = index || 0;
+        sheet.insertRule(selector + "{" + rules + "}", index);
+    };
+}();
+
 module.exports = {
+    isExtInstalled: isExtInstalled,
     isChrome: isChrome,
-    randomCode: randomCode
+    isMobile: isMobile,
+    isNano: isNano,
+    isWechat: isWechat,
+    randomCode: randomCode,
+    addCssRule: addCssRule
 };
 
 },{}],2:[function(require,module,exports){
 "use strict";
 
-//var payUrl = "https://pay.nebulas.io/api/pay"; //
+var config = require("./config");
+var Utils = require("./Utils");
 
-var mainnetUrl = "https://pay.nebulas.io/api/mainnet/pay",
-    testnetUrl = "https://pay.nebulas.io/api/pay";
+function openApp(appParams, options) {
+  var url = config.nanoScheme(options.debug);
+  url = url + "://virtual?params=" + JSON.stringify(appParams);
+  window.location.href = url;
+  // var ifr = document.createElement('iframe');
+  // ifr.src = url;
+  // ifr.style.display='none';
+
+  //if (!Utils.isNano() && options.mobile.showInstallTip) {
+  checkOpen(function (opened) {
+    if (!opened) {
+      //showNanoInstallTip(options);
+      alertNanoInstall();
+    }
+  });
+  //}
+
+  // document.body.appendChild(ifr);      
+  // setTimeout(function() {
+  //     document.body.removeChild(ifr);
+  // }, 2000); 
+}
+
+function alertNanoInstall() {
+  if (window.confirm('NasNano is not installed. Click "ok" to install it.')) {
+    //window.open("https://nano.nebulas.io/");  //usually pop-up window is blocked
+    window.location.href = 'https://nano.nebulas.io/';
+  }
+}
+
+//check app open
+function checkOpen(cb) {
+  var _clickTime = +new Date();
+  function check(elsTime) {
+    if (elsTime > 3000 || document.hidden || document.webkitHidden) {
+      cb(1);
+    } else {
+      cb(0);
+    }
+  }
+
+  //Start the timer running at an interval of 20ms 
+  // and check whether the cumulative consumption time exceeds 3000ms
+  var _count = 0,
+      intHandle;
+  intHandle = setInterval(function () {
+    _count++;
+    var elsTime = +new Date() - _clickTime;
+    if (_count >= 100 || elsTime > 3000) {
+      clearInterval(intHandle);
+      check(elsTime);
+    }
+  }, 20);
+}
+
+function showNanoInstallTip(options) {
+  var installBtn = document.createElement("BUTTON");
+  installBtn.className = "install";
+  installBtn.innerHTML = options.mobile.installTip || "INSTALL NASNano/下载星云钱包";
+  /*jshint multistr: true */
+  var style = "text-align: center;\
+    background-color: #000;\
+    color: #fff;\
+    border-radius: 20px;\
+    width: 80%;\
+    height: 40px;\
+    position: absolute;\
+    left: 50%;\
+    top: 50%;\
+    transform: translate(-50%,-50%);";
+  Utils.addCssRule(".install", style);
+
+  var background = document.createElement("div");
+  background.className = "install-background";
+  style = "position: fixed;\
+	bottom:0;\
+	z-index:1000;\
+	height:40px;\
+    width:100%;\
+	background-color: rgba(0, 0, 0, 0);";
+  Utils.addCssRule(".install-background", style);
+  background.appendChild(installBtn);
+
+  var bodys = document.getElementsByTagName("body");
+  var body = bodys[0];
+  body.appendChild(background);
+
+  installBtn.onclick = function () {
+    body.removeChild(background);
+    background = null;
+    //window.location.href = "https://nano.nebulas.io/";
+    window.open("https://nano.nebulas.io/");
+  };
+}
+
+module.exports = openApp;
+
+},{"./Utils":1,"./config":3}],3:[function(require,module,exports){
+"use strict";
+
+var mainnetUrl = "https://pay.nebulas.io/api/mainnet/pay";
+var testnetUrl = "https://pay.nebulas.io/api/pay";
+
+var payUrl = function (debug) {
+    debug = debug || false;
+    if (debug) {
+        return testnetUrl;
+    } else {
+        return mainnetUrl;
+    }
+};
+
+var nanoScheme = function (debug) {
+    debug = debug || false;
+    if (debug) {
+        return "openapp.NASnano.testnet";
+    } else {
+        return "openapp.NASnano";
+    }
+};
 
 module.exports = {
-    //payUrl: payUrl,
+    payUrl: payUrl,
+    nanoScheme: nanoScheme,
     mainnetUrl: mainnetUrl,
     testnetUrl: testnetUrl
 };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 var callbackMap = {};
@@ -71,7 +240,7 @@ window.addEventListener('message', function (resp) {
     var key = resp.data.serialNumber;
     var callback = callbackMap[key];
     if (typeof callback === "function") {
-        callback(resp.data.resp);
+        callback(key, resp.data.resp);
     }
 
     //delete callbackMap[key];
@@ -79,7 +248,7 @@ window.addEventListener('message', function (resp) {
 
 module.exports = openExtension;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 var get = function (url, body) {
@@ -128,28 +297,48 @@ module.exports = {
     request: request
 };
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 var BigNumber = require("bignumber.js");
 
 var Utils = require("./Utils");
 var QRCode = require("./qrcode");
-//var Config = require("./config");
 
-var openExtension = require("./extensionUtils.js");
+var openExtension = require("./extensionHandler");
+var openApp = require("./appHandler");
+var config = require("./config");
 
 var Pay = function (appKey, appSecret) {
 	// TODO: currently not use
 	this.appKey = appKey;
 	this.appSecret = appSecret;
 };
+var TransactionMaxGasPrice = "1000000000000";
+var TransactionMaxGas = "50000000000";
 
 Pay.prototype = {
+	/*jshint maxcomplexity:6 */
 	submit: function (currency, to, value, payload, options) {
 		options.serialNumber = Utils.randomCode(32);
 		value = value || "0";
 		var amount = new BigNumber(value).times("1000000000000000000"); //10^18
+
+		var gasLimitBN, gasPriceBN;
+		if (!!options.gasLimit) {
+			gasLimitBN = new BigNumber(options.gasLimit); //check validity of gasPrice & gasLimit
+			if (gasLimitBN.lt(0)) throw new Error("gas limit should not be minus");
+			if (gasLimitBN.gt(TransactionMaxGas)) throw new Error("gas limit should smaller than " + TransactionMaxGas);
+			if (!gasLimitBN.isInteger()) throw new Error("gas limit should be integer");
+		}
+
+		if (!!options.gasPrice) {
+			gasPriceBN = new BigNumber(options.gasPrice);
+			if (gasPriceBN.lt(0)) throw new Error("gas price should not be minus");
+			if (gasPriceBN.gt(TransactionMaxGasPrice)) throw new Error("gas price should smaller than " + TransactionMaxGasPrice);
+			if (!gasPriceBN.isInteger()) throw new Error("gas price should be integer");
+		}
+
 		var params = {
 			serialNumber: options.serialNumber,
 			goods: options.goods,
@@ -157,91 +346,117 @@ Pay.prototype = {
 				currency: currency,
 				to: to,
 				value: amount.toString(10),
-				payload: payload
+				payload: payload,
+				gasLimit: !!gasLimitBN ? gasLimitBN.toString(10) : undefined,
+				gasPrice: !!gasPriceBN ? gasPriceBN.toString(10) : undefined
 			},
-			callback: options.callback,
+			callback: options.callback || config.payUrl(options.debug),
 			listener: options.listener,
 			nrc20: options.nrc20
 		};
 
-		openExtension(params);
-		openApp(params, options);
+		if (Utils.isChrome() && !Utils.isMobile() && options.extension.openExtension) {
+			if (Utils.isExtInstalled()) openExtension(params);else {
+				//window.alert("NasExtWallet is not installed.");
+				if (window.confirm('NasExtWallet is not installed. Click "ok" to install it.')) {
+					window.open('https://chrome.google.com/webstore/detail/nasextwallet/gehjkhmhclgnkkhpfamakecfgakkfkco');
+				}
+			}
+		}
+
+		var appParams = {
+			category: "jump",
+			des: "confirmTransfer",
+			pageParams: params
+		};
+
+		if (Utils.isMobile()) {
+			openApp(appParams, options);
+		}
+
+		if (options.qrcode.showQRCode && !Utils.isNano()) {
+			QRCode.showQRCode(JSON.stringify(appParams), options);
+		}
 
 		return options.serialNumber;
 	}
 };
 
-// function openExtension(params) {
-// 	// TODO: start chrom extension
-// 	if (typeof window !== "undefined") {
-// 		window.postMessage(params,"*");
-// 	}
-// }
-
-function openApp(params, options) {
-	// if (typeof window !== "undefined") {
-	//params.callback = Config.payUrl;
-	var appParams = {
-		category: "jump",
-		des: "confirmTransfer",
-		pageParams: params
-	};
-	var url = "openapp.NASnano://virtual?params=" + JSON.stringify(appParams);
-	window.location.href = url;
-
-	if (options.qrcode.showQRCode) {
-		showQRCode(JSON.stringify(appParams), options);
-	}
-	// }
-}
-
-function showQRCode(params, options) {
-	QRCode.showQRCode(params, options.qrcode.container);
-}
-
 module.exports = Pay;
 
-},{"./Utils":1,"./extensionUtils.js":3,"./qrcode":6,"bignumber.js":7}],6:[function(require,module,exports){
+},{"./Utils":1,"./appHandler":2,"./config":3,"./extensionHandler":4,"./qrcode":7,"bignumber.js":8}],7:[function(require,module,exports){
 "use strict";
 
 var QRCode = require('qrcode');
+var Utils = require("./Utils");
 
-var addCssRule = function () {
-	function createStyleSheet() {
-		var style = document.createElement('style');
-		style.type = 'text/css';
-		document.head.appendChild(style);
-		return style.sheet;
-	}
-
-	var sheet = createStyleSheet();
-
-	return function (selector, rules, index) {
-		index = index || 0;
-		sheet.insertRule(selector + "{" + rules + "}", index);
-	};
-}();
-
-var createDeaultQRContainer = function () {
+var createDeaultQRContainer = function (options) {
 	var canvas = document.createElement("canvas");
 	canvas.className = "qrcode";
-	var canvasStyle = "box-shadow: 2px 2px 12px lightgray;";
-	addCssRule(".qrcode", canvasStyle);
+	/*jshint multistr: true */
+	var canvasStyle = "//box-shadow: 2px 2px 12px lightgray;";
+	Utils.addCssRule(".qrcode", canvasStyle);
 
 	var qrcontainer = document.createElement("div");
 	qrcontainer.className = "qrcode-container";
-	/*jshint multistr: true */ //to remove gulp error warning
 	var style = "text-align: center;\
-    background-color: #fff0;\
-    border-radius: 20px;\
-    width: 300px;\
-    height: 300px;\
+    //background-color: #fff0;\
+    background-color: white;\
+    //border-radius: 20px;\
+    width: min-content; //300px;\
+    height: min-content; //300px;\
     position: absolute;\
     left: 50%;\
     top: 50%;\
     transform: translate(-50%,-50%);";
-	addCssRule(".qrcode-container", style);
+	Utils.addCssRule(".qrcode-container", style);
 	qrcontainer.appendChild(canvas);
+
+	var newLine = document.createElement('br');
+	qrcontainer.appendChild(newLine);
+
+	var textInfo = document.createElement('label');
+	textInfo.innerHTML = 'Please use <a href= "https://nano.nebulas.io/" target="_blank" >NasNano</a> to scan this QR-Code.';
+	textInfo.className = "qrcode-text";
+	style = "background-color: white;\
+    	width: 300px";
+	Utils.addCssRule(".qrcode-text", style);
+	qrcontainer.appendChild(textInfo);
+
+	newLine = document.createElement('br');
+	qrcontainer.appendChild(newLine);
+
+	var completeBtn = document.createElement("BUTTON");
+	completeBtn.className = "complete";
+	completeBtn.innerHTML = options.qrcode.completeTip || "COMPLETE/完成支付";
+	style = "background-color: #000;\
+	border-radius: 4px;\
+	width: 295px; // 300px;\
+	height: 40px;\
+	// padding: 20px;\
+	margin-top: 20px;\
+	color: #fff;\
+	";
+	Utils.addCssRule(".complete", style);
+	qrcontainer.appendChild(completeBtn);
+
+	newLine = document.createElement('br');
+	qrcontainer.appendChild(newLine);
+
+	var cancelBtn = document.createElement("BUTTON");
+	cancelBtn.className = "cancel";
+	cancelBtn.innerHTML = options.qrcode.cancelTip || "CANCEL/取消支付";
+	style = "background-color: #666;\
+	border-radius: 4px;\
+	width: 295px; // 300px;\
+	height: 40px;\
+	// padding: 20px;\
+	margin-top: 10px;\
+	margin-bottom: 20px;\
+	color: #fff;\
+	";
+	Utils.addCssRule(".cancel", style);
+	qrcontainer.appendChild(cancelBtn);
 
 	var background = document.createElement("div");
 	background.className = "qrcode-background";
@@ -252,25 +467,50 @@ var createDeaultQRContainer = function () {
 	height:100%;\
 	width:100%;\
 	background-color: rgba(0, 0, 0, 0.4);";
-	addCssRule(".qrcode-background", style);
+	Utils.addCssRule(".qrcode-background", style);
 	background.appendChild(qrcontainer);
 
-	var body = document.getElementsByTagName("body");
-	body[0].appendChild(background);
+	var bodys = document.getElementsByTagName("body");
+	var body = bodys[0];
+	body.appendChild(background);
 
+	qrcontainer.onclick = function () {
+		//if clicked on qr-container, qr-code should not be removed
+		event.cancelBubble = true;
+	};
 	background.onclick = function () {
-		body[0].removeChild(background);
+		// if (background !== null) {   //change: qrcode should be cancelled when click background
+		// 	body.removeChild(background);
+		// 	dismiss(false, options);
+		// }
+	};
+	cancelBtn.onclick = function () {
+		body.removeChild(background);
+		background = null;
+		dismiss(false, options);
+	};
+	completeBtn.onclick = function () {
+		body.removeChild(background);
+		background = null;
+		dismiss(true, options);
 	};
 
 	return canvas;
 };
 
-var showQRCode = function (content, container) {
+var dismiss = function (complete, options) {
+	if (typeof options.listener !== "undefined") {
+		options.listener(options.serialNumber, complete);
+	}
+};
+
+var showQRCode = function (content, options) {
 	if (typeof window === "undefined") {
 		return;
 	}
+	var container = options.qrcode.container;
 	if (typeof container === "undefined") {
-		container = createDeaultQRContainer();
+		container = createDeaultQRContainer(options);
 	}
 	QRCode.toCanvas(container, content, function (error) {
 		if (error) {
@@ -283,7 +523,7 @@ module.exports = {
 	showQRCode: showQRCode
 };
 
-},{"qrcode":12}],7:[function(require,module,exports){
+},{"./Utils":1,"qrcode":13}],8:[function(require,module,exports){
 /*! bignumber.js v5.0.0 https://github.com/MikeMcl/bignumber.js/LICENCE */
 
 ;(function (globalObj) {
@@ -3020,7 +3260,7 @@ module.exports = {
     }
 })(this);
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict'
 
 var G = require('window-or-global')
@@ -3032,7 +3272,7 @@ module.exports = function() {
   )
 }
 
-},{"window-or-global":38}],9:[function(require,module,exports){
+},{"window-or-global":39}],10:[function(require,module,exports){
 'use strict';
 
 /******************************************************************************
@@ -3199,7 +3439,7 @@ if (typeof module !== 'undefined') {
   module.exports = dijkstra;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -3287,14 +3527,14 @@ module.exports = function extend() {
 	return target;
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var canPromise = require('can-promise')
 var QRCode = require('./core/qrcode')
 var CanvasRenderer = require('./renderer/canvas')
@@ -3370,7 +3610,7 @@ exports.toString = renderCanvas.bind(null, function (data, _, opts) {
   return SvgRenderer.render(data, opts)
 })
 
-},{"./core/qrcode":28,"./renderer/canvas":34,"./renderer/svg-tag.js":35,"can-promise":8}],13:[function(require,module,exports){
+},{"./core/qrcode":29,"./renderer/canvas":35,"./renderer/svg-tag.js":36,"can-promise":9}],14:[function(require,module,exports){
 /**
  * Alignment pattern are fixed reference pattern in defined positions
  * in a matrix symbology, which enables the decode software to re-synchronise
@@ -3455,7 +3695,7 @@ exports.getPositions = function getPositions (version) {
   return coords
 }
 
-},{"./utils":32}],14:[function(require,module,exports){
+},{"./utils":33}],15:[function(require,module,exports){
 var Mode = require('./mode')
 
 /**
@@ -3516,7 +3756,7 @@ AlphanumericData.prototype.write = function write (bitBuffer) {
 
 module.exports = AlphanumericData
 
-},{"./mode":25}],15:[function(require,module,exports){
+},{"./mode":26}],16:[function(require,module,exports){
 function BitBuffer () {
   this.buffer = []
   this.length = 0
@@ -3555,7 +3795,7 @@ BitBuffer.prototype = {
 
 module.exports = BitBuffer
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 
 /**
@@ -3626,7 +3866,7 @@ BitMatrix.prototype.isReserved = function (row, col) {
 
 module.exports = BitMatrix
 
-},{"../utils/buffer":37}],17:[function(require,module,exports){
+},{"../utils/buffer":38}],18:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 var Mode = require('./mode')
 
@@ -3655,7 +3895,7 @@ ByteData.prototype.write = function (bitBuffer) {
 
 module.exports = ByteData
 
-},{"../utils/buffer":37,"./mode":25}],18:[function(require,module,exports){
+},{"../utils/buffer":38,"./mode":26}],19:[function(require,module,exports){
 var ECLevel = require('./error-correction-level')
 
 var EC_BLOCKS_TABLE = [
@@ -3792,7 +4032,7 @@ exports.getTotalCodewordsCount = function getTotalCodewordsCount (version, error
   }
 }
 
-},{"./error-correction-level":19}],19:[function(require,module,exports){
+},{"./error-correction-level":20}],20:[function(require,module,exports){
 exports.L = { bit: 1 }
 exports.M = { bit: 0 }
 exports.Q = { bit: 3 }
@@ -3844,7 +4084,7 @@ exports.from = function from (value, defaultValue) {
   }
 }
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var getSymbolSize = require('./utils').getSymbolSize
 var FINDER_PATTERN_SIZE = 7
 
@@ -3868,7 +4108,7 @@ exports.getPositions = function getPositions (version) {
   ]
 }
 
-},{"./utils":32}],21:[function(require,module,exports){
+},{"./utils":33}],22:[function(require,module,exports){
 var Utils = require('./utils')
 
 var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0)
@@ -3899,7 +4139,7 @@ exports.getEncodedBits = function getEncodedBits (errorCorrectionLevel, mask) {
   return ((data << 10) | d) ^ G15_MASK
 }
 
-},{"./utils":32}],22:[function(require,module,exports){
+},{"./utils":33}],23:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 
 var EXP_TABLE = new Buffer(512)
@@ -3973,7 +4213,7 @@ exports.mul = function mul (x, y) {
   return EXP_TABLE[LOG_TABLE[x] + LOG_TABLE[y]]
 }
 
-},{"../utils/buffer":37}],23:[function(require,module,exports){
+},{"../utils/buffer":38}],24:[function(require,module,exports){
 var Mode = require('./mode')
 var Utils = require('./utils')
 
@@ -4029,7 +4269,7 @@ KanjiData.prototype.write = function (bitBuffer) {
 
 module.exports = KanjiData
 
-},{"./mode":25,"./utils":32}],24:[function(require,module,exports){
+},{"./mode":26,"./utils":33}],25:[function(require,module,exports){
 /**
  * Data mask pattern reference
  * @type {Object}
@@ -4265,7 +4505,7 @@ exports.getBestMask = function getBestMask (data, setupFormatFunc) {
   return bestPattern
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var Version = require('./version')
 var Regex = require('./regex')
 
@@ -4434,7 +4674,7 @@ exports.from = function from (value, defaultValue) {
   }
 }
 
-},{"./regex":30,"./version":33}],26:[function(require,module,exports){
+},{"./regex":31,"./version":34}],27:[function(require,module,exports){
 var Mode = require('./mode')
 
 function NumericData (data) {
@@ -4479,7 +4719,7 @@ NumericData.prototype.write = function write (bitBuffer) {
 
 module.exports = NumericData
 
-},{"./mode":25}],27:[function(require,module,exports){
+},{"./mode":26}],28:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 var GF = require('./galois-field')
 
@@ -4545,7 +4785,7 @@ exports.generateECPolynomial = function generateECPolynomial (degree) {
   return poly
 }
 
-},{"../utils/buffer":37,"./galois-field":22}],28:[function(require,module,exports){
+},{"../utils/buffer":38,"./galois-field":23}],29:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 var Utils = require('./utils')
 var ECLevel = require('./error-correction-level')
@@ -5046,7 +5286,7 @@ exports.create = function create (data, options) {
   return createSymbol(data, version, errorCorrectionLevel, mask)
 }
 
-},{"../utils/buffer":37,"./alignment-pattern":13,"./bit-buffer":15,"./bit-matrix":16,"./error-correction-code":18,"./error-correction-level":19,"./finder-pattern":20,"./format-info":21,"./mask-pattern":24,"./mode":25,"./reed-solomon-encoder":29,"./segments":31,"./utils":32,"./version":33,"isarray":11}],29:[function(require,module,exports){
+},{"../utils/buffer":38,"./alignment-pattern":14,"./bit-buffer":16,"./bit-matrix":17,"./error-correction-code":19,"./error-correction-level":20,"./finder-pattern":21,"./format-info":22,"./mask-pattern":25,"./mode":26,"./reed-solomon-encoder":30,"./segments":32,"./utils":33,"./version":34,"isarray":12}],30:[function(require,module,exports){
 var Buffer = require('../utils/buffer')
 var Polynomial = require('./polynomial')
 
@@ -5107,7 +5347,7 @@ ReedSolomonEncoder.prototype.encode = function encode (data) {
 
 module.exports = ReedSolomonEncoder
 
-},{"../utils/buffer":37,"./polynomial":27}],30:[function(require,module,exports){
+},{"../utils/buffer":38,"./polynomial":28}],31:[function(require,module,exports){
 var numeric = '[0-9]+'
 var alphanumeric = '[A-Z $%*+\\-./:]+'
 var kanji = '(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|' +
@@ -5140,7 +5380,7 @@ exports.testAlphanumeric = function testAlphanumeric (str) {
   return TEST_ALPHANUMERIC.test(str)
 }
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 var Mode = require('./mode')
 var NumericData = require('./numeric-data')
 var AlphanumericData = require('./alphanumeric-data')
@@ -5472,7 +5712,7 @@ exports.rawSplit = function rawSplit (data) {
   )
 }
 
-},{"./alphanumeric-data":14,"./byte-data":17,"./kanji-data":23,"./mode":25,"./numeric-data":26,"./regex":30,"./utils":32,"dijkstrajs":9}],32:[function(require,module,exports){
+},{"./alphanumeric-data":15,"./byte-data":18,"./kanji-data":24,"./mode":26,"./numeric-data":27,"./regex":31,"./utils":33,"dijkstrajs":10}],33:[function(require,module,exports){
 var toSJISFunction
 var CODEWORDS_COUNT = [
   0, // Not used
@@ -5537,7 +5777,7 @@ exports.toSJIS = function toSJIS (kanji) {
   return toSJISFunction(kanji)
 }
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var Utils = require('./utils')
 var ECCode = require('./error-correction-code')
 var ECLevel = require('./error-correction-level')
@@ -5712,7 +5952,7 @@ exports.getEncodedBits = function getEncodedBits (version) {
   return (version << 12) | d
 }
 
-},{"./error-correction-code":18,"./error-correction-level":19,"./mode":25,"./utils":32,"isarray":11}],34:[function(require,module,exports){
+},{"./error-correction-code":19,"./error-correction-level":20,"./mode":26,"./utils":33,"isarray":12}],35:[function(require,module,exports){
 var Utils = require('./utils')
 
 function clearCanvas (ctx, canvas, size) {
@@ -5777,7 +6017,7 @@ exports.renderToDataURL = function renderToDataURL (qrData, canvas, options) {
   return canvasEl.toDataURL(type, rendererOpts.quality)
 }
 
-},{"./utils":36}],35:[function(require,module,exports){
+},{"./utils":37}],36:[function(require,module,exports){
 var Utils = require('./utils')
 
 function getColorAttrib (color, attrib) {
@@ -5860,7 +6100,7 @@ exports.render = function render (qrData, options, cb) {
   return svgTag
 }
 
-},{"./utils":36}],36:[function(require,module,exports){
+},{"./utils":37}],37:[function(require,module,exports){
 function hex2rgba (hex) {
   if (typeof hex !== 'string') {
     throw new Error('Color should be defined as hex string')
@@ -5955,7 +6195,7 @@ exports.qrToImageData = function qrToImageData (imgData, qr, opts) {
   }
 }
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /**
  * Implementation of a subset of node.js Buffer methods for the browser.
  * Based on https://github.com/feross/buffer
@@ -6469,7 +6709,7 @@ Buffer.isBuffer = function isBuffer (b) {
 
 module.exports = Buffer
 
-},{"isarray":11}],38:[function(require,module,exports){
+},{"isarray":12}],39:[function(require,module,exports){
 (function (global){
 'use strict'
 module.exports = (typeof self === 'object' && self.self === self && self) ||
@@ -6495,27 +6735,45 @@ var NebPay = function (appKey, appSecret) {
 
 NebPay.config = config;
 
-var defaultOptions = {
-	goods: {
-		name: "",
-		desc: "",
-		orderId: "",
-		ext: ""
-	},
-	qrcode: {
-		showQRCode: false,
-		container: undefined
-	},
+var defaultOptions = function () {
+	return {
+		goods: {
+			name: "",
+			desc: "",
+			orderId: "",
+			ext: ""
+		},
+		qrcode: {
+			showQRCode: false,
+			completeTip: undefined, // string of complete payment tip
+			cancelTip: undefined, // string of cancel payment tip
+			container: undefined
+		},
+		extension: {
+			openExtension: true //set if need show extension payment mode
+		},
 
-	// callback is the return url after payment
-	//callback: config.payUrl,
-	callback: config.mainnetUrl,
+		mobile: {
+			showInstallTip: true,
+			installTip: undefined // string of install NASNano tip
+		},
 
-	//listener：specify a listener function to handle payment feedback message(only valid for browser extension)
-	listener: undefined,
+		// callback is the return url after payment
+		//callback: config.payUrl,
+		callback: undefined,
 
-	// if use nrc20pay ,should input nrc20 params like address, name, symbol, decimals
-	nrc20: undefined
+		//listener：specify a listener function to handle payment feedback message(only valid for browser extension)
+		listener: undefined,
+
+		// if use nrc20pay ,should input nrc20 params like address, name, symbol, decimals
+		nrc20: undefined,
+
+		// if debug mode, should open testnet nano and reset the callback
+		debug: false,
+
+		gasPrice: undefined, // 1000000 ,
+		gasLimit: undefined //20000
+	};
 };
 
 NebPay.prototype = {
@@ -6523,7 +6781,7 @@ NebPay.prototype = {
 		var payload = {
 			type: "binary"
 		};
-		options = extend(defaultOptions, options);
+		options = extend(defaultOptions(), options);
 		return this._pay.submit(NAS, to, value, payload, options);
 	},
 	nrc20pay: function (currency, to, value, options) {
@@ -6542,7 +6800,7 @@ NebPay.prototype = {
 			function: "transfer",
 			args: JSON.stringify(args)
 		};
-		options = extend(defaultOptions, options);
+		options = extend(defaultOptions(), options);
 		return this._pay.submit(currency, address, "0", payload, options);
 	},
 	deploy: function (source, sourceType, args, options) {
@@ -6552,7 +6810,7 @@ NebPay.prototype = {
 			sourceType: sourceType,
 			args: args
 		};
-		options = extend(defaultOptions, options);
+		options = extend(defaultOptions(), options);
 		return this._pay.submit(NAS, "", "0", payload, options);
 	},
 	call: function (to, value, func, args, options) {
@@ -6561,7 +6819,7 @@ NebPay.prototype = {
 			function: func,
 			args: args
 		};
-		options = extend(defaultOptions, options);
+		options = extend(defaultOptions(), options);
 		return this._pay.submit(NAS, to, value, payload, options);
 	},
 	simulateCall: function (to, value, func, args, options) {
@@ -6571,18 +6829,21 @@ NebPay.prototype = {
 			function: func,
 			args: args
 		};
-		options = extend(defaultOptions, options);
+		options = extend(defaultOptions(), options);
+		options.qrcode.showQRCode = false;
+		options.mobile.showInstallTip = false;
+		options.extension.openExtension = true;
 
 		return this._pay.submit(NAS, to, value, payload, options);
 	},
 	queryPayInfo: function (serialNumber, options) {
-		//var url = config.payUrl + "/query?payId=" + serialNumber;
-		options = extend(defaultOptions, options);
-		var url = options.callback + "/query?payId=" + serialNumber;
+		options = extend(defaultOptions(), options);
+		var url = options.callback || config.payUrl(options.debug);
+		url = url + "/query?payId=" + serialNumber;
 		return http.get(url);
 	}
 };
 
 module.exports = NebPay;
 
-},{"./libs/config":2,"./libs/http":4,"./libs/pay":5,"bignumber.js":7,"extend":10}]},{},[]);
+},{"./libs/config":3,"./libs/http":5,"./libs/pay":6,"bignumber.js":8,"extend":11}]},{},[]);

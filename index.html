@@ -64,15 +64,6 @@
     .qrcode-background{
         z-index: 1999 !important;
     }
-    .qrcode-background canvas{
-        width: 100% !important;
-        height: 100% !important;
-    }
-    .qrcode-background>div:after {
-         color:white;
-         content: "请用手机钱包扫描二维码完成支付：";
-         text-shadow: lightgray 2px 2px 12px;
-    }
  </style>
 </head>
 <body>
@@ -258,29 +249,6 @@
             </div>
         </div>
     </div>
-    <div class="modal fade " id="web-wallet-tip">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <!-- 模态框头部 -->
-                <div class="modal-header">
-                        <h4 id="rule-title" class="modal-title">温馨提示</h4>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-    
-                    <!-- 模态框主体 -->
-                    <div class="modal-body">
-                        <div class="container">
-                            <div class="row">
-                                <span>币集市是基于星云链的一款应用，需要依赖星云chrome钱包插件，安装地址:
-                                    <a target='_blank' href='https://chrome.google.com/webstore/detail/nasextwallet/gehjkhmhclgnkkhpfamakecfgakkfkco'>Chrome Web Store</a>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="modal fade" id="rule-dlg">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -364,24 +332,18 @@
         let noNasExtWallet = true;
         $().ready(function () {
              if (os.isPc) {
-                noNasExtWallet = typeof (webExtensionWallet) === "undefined";
-                if (noNasExtWallet) {
-                    $("#web-wallet-tip").modal("show");
-                    if (bindAddr==="")
+                noNasExtWallet = typeof (NasExtWallet) === "undefined";
+                if (bindAddr===""){
+                    // 如果没有保存本地账号，则取浏览器钱包插件的账号
+                    if (!noNasExtWallet) {
+                        setTimeout(function () {
+                            NasExtWallet.getUserAddress(function (addr) {
+                                setBindAddr(addr);
+                            });
+                        },2000);
+                    }
+                    else {
                         bindAddr='n1K2nSbJWiKVnHCAi7PFEjGef7iDQVFsTs8';
-                } else {
-                    if (bindAddr===""){
-                        // 如果没有保存本地账号，则取浏览器钱包插件的账号
-                        if (typeof (NasExtWallet)!=="undefined") {
-                            setTimeout(function () {
-                                NasExtWallet.getUserAddress(function (addr) {
-                                    setBindAddr(addr);
-                                });
-                            },2000);
-                        }
-                        else {
-                            bindAddr='n1K2nSbJWiKVnHCAi7PFEjGef7iDQVFsTs8';
-                        }
                     }
                 }
             }
